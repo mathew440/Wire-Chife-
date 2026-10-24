@@ -1,6 +1,6 @@
 # Wire Chief
 
-Wire Chief is a mobile-first job book for an electrical contractor's foreman or project manager. It is a new app for Mat Hiner at AKA Electric in northern Ohio. It is not RivetOne and it does not share data with that app.
+Wire Chief is a mobile-first job book for an electrical contractor. Mat Hiner at AKA Electric in northern Ohio is the project manager. The foreman is a separate field and stays blank until that name is verified. It is not RivetOne and it does not share data with that app.
 
 Jobs, daily reports, crew, open items, material takeoffs, and files stay in **IndexedDB on this phone or computer**. Version 1 has no account, no server, and no credentials.
 

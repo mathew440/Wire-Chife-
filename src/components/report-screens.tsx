@@ -8,6 +8,7 @@ import { EmptyState, InlineError, PageFallback, StorageError } from "@/component
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { blankAttachment, blankReport } from "@/lib/data/factories";
+import { foremanDisplay, preparedByLabel } from "@/lib/data/roles";
 import { newId } from "@/lib/data/id";
 import {
   deleteReport,
@@ -102,7 +103,7 @@ export function ReportEditor({ params }: { params: Promise<{ id: string; reportI
   const dictationRef = useRef<HTMLTextAreaElement>(null);
 
   if (status === "error") return <StorageError message={error ?? "Storage error"} />;
-  if (status !== "ready" || project === undefined || !people || !files) return <PageFallback />;
+  if (status !== "ready" || project === undefined || !people || !files || !settings) return <PageFallback />;
   if (project === null) return <MissingJob />;
   if (!isNew) {
     if (existing === undefined) return <PageFallback />;
@@ -178,7 +179,8 @@ export function ReportEditor({ params }: { params: Promise<{ id: string; reportI
     if (!settings || !draft || !project) return;
     const bytes = await buildDailyReportPdf({
       company: settings.companyName,
-      preparedBy: settings.profileName,
+      preparedBy: preparedByLabel(settings.profileName, settings.profileRole),
+      foremanName: settings.foremanName,
       projectName: project.name,
       jobNumber: project.jobNumber,
       gc: project.gc,
@@ -235,7 +237,7 @@ export function ReportEditor({ params }: { params: Promise<{ id: string; reportI
       <PageIntro
         eyebrow={project.name}
         title={isNew ? "New daily report" : formatDay(draft.date)}
-        description="Fast on a phone. Paste dictated notes, then send the words into a section yourself. Wire Chief will not move them."
+        description={`Prepared by ${preparedByLabel(settings.profileName, settings.profileRole)}. Foreman: ${foremanDisplay(settings.foremanName)}. Paste dictated notes, then send the words into a section yourself. Wire Chief will not move them.`}
         actions={
           <>
             {project.isSample ? <SampleBadge /> : null}

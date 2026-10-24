@@ -1,3 +1,4 @@
+import { foremanDisplay } from "@/lib/data/roles";
 import { confirmationLabel, formatDay } from "@/lib/domain/dates";
 import { crewTime } from "@/lib/domain/estimates";
 import type { Confirmation, DurationUnit, MaterialLine } from "@/lib/data/types";
@@ -7,6 +8,8 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf
 export interface EstimatePdfInput {
   company: string;
   preparedBy: string;
+  /** Blank when the foreman still needs verification. */
+  foremanName: string;
   projectName: string;
   jobNumber: string;
   gc: string;
@@ -56,7 +59,8 @@ export async function buildEstimatePdf(input: EstimatePdfInput): Promise<Uint8Ar
     font,
     MUTED,
   );
-  y = draw(page, `${input.preparedBy}  ·  ${input.company}`, 32, y, 9, font, MUTED);
+  y = draw(page, `Prepared by ${input.preparedBy}  ·  ${input.company}`, 32, y, 9, font, MUTED);
+  y = draw(page, `Foreman: ${foremanDisplay(input.foremanName)}`, 32, y, 9, font, input.foremanName.trim() ? INK : ORANGE);
 
   y -= 8;
   page.drawRectangle({ x: 32, y: y - 28, width: 548, height: 32, color: WASH });

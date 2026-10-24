@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { backupFileName, exportBackup, importBackup, type BackupFile } from "@/lib/data/backup";
 import { getSettings, listChangelog, removeSampleData, saveSettings } from "@/lib/data/repo";
 import { reloadSampleData } from "@/lib/data/seed";
+import { foremanDisplay, preparedByLabel, SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import { localOnlySync } from "@/lib/sync/adapter";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useEffect, useState } from "react";
@@ -18,6 +19,8 @@ export function DataScreen() {
   const settings = useLiveQuery(() => (status === "ready" ? getSettings() : undefined), [status]);
   const changes = useLiveQuery(() => (status === "ready" ? listChangelog() : undefined), [status]);
   const [name, setName] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [foreman, setForeman] = useState<string | null>(null);
   const [company, setCompany] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const offline = useOffline();
@@ -26,10 +29,18 @@ export function DataScreen() {
   if (status !== "ready" || !settings || !changes) return <PageFallback />;
 
   const profileName = name ?? settings.profileName;
+  const profileRole = role ?? settings.profileRole;
+  const foremanName = foreman ?? settings.foremanName;
   const companyName = company ?? settings.companyName;
 
   async function saveProfile() {
-    await saveSettings({ ...settings!, profileName: profileName.trim() || "Mat Hiner", companyName: companyName.trim() || "AKA Electric" });
+    await saveSettings({
+      ...settings!,
+      profileName: profileName.trim() || SEEDED_PROFILE_NAME,
+      profileRole: profileRole.trim() || SEEDED_PROFILE_ROLE,
+      foremanName: foremanName.trim(),
+      companyName: companyName.trim() || "AKA Electric",
+    });
     toast.success("Profile saved on this device");
   }
 
@@ -88,13 +99,21 @@ export function DataScreen() {
             <Field label="Your name">
               <TextField value={profileName} onChange={(event) => setName(event.target.value)} />
             </Field>
+            <Field label="Your role">
+              <TextField value={profileRole} onChange={(event) => setRole(event.target.value)} />
+            </Field>
+            <Field label="Foreman" hint="Separate from the project manager. Leave blank until the name is verified.">
+              <TextField value={foremanName} placeholder="Needs verification" onChange={(event) => setForeman(event.target.value)} />
+            </Field>
             <Field label="Company">
               <TextField value={companyName} onChange={(event) => setCompany(event.target.value)} />
             </Field>
             <Button type="button" onClick={() => void saveProfile()}>
               Save profile
             </Button>
-            <p className="text-sm text-muted-foreground">Shows on reports and estimate PDFs as the person who prepared them.</p>
+            <p className="text-sm text-muted-foreground">
+              Reports say Prepared by {preparedByLabel(profileName, profileRole)}. Foreman: {foremanDisplay(foremanName)}.
+            </p>
           </CardContent>
         </Card>
         <Card className="bg-card text-base">

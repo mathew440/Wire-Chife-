@@ -1,5 +1,6 @@
 import { todayISO } from "@/lib/domain/dates";
 import { newId, nowIso } from "@/lib/data/id";
+import { SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import type {
   Assignment,
   Attachment,
@@ -164,9 +165,12 @@ export function defaultSettings(): Settings {
   return {
     ...meta("local"),
     id: "local",
-    profileName: "Mat Hiner",
+    profileName: SEEDED_PROFILE_NAME,
+    profileRole: SEEDED_PROFILE_ROLE,
+    foremanName: "",
     companyName: "AKA Electric",
     samplesSeeded: false,
     seedRevision: "",
+    seededRoleMigrated: false,
   };
 }

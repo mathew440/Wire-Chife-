@@ -290,9 +290,23 @@ export async function deleteProject(id: string): Promise<void> {
 
 export async function getSettings(): Promise<Settings> {
   const existing = await db.settings.get("local");
-  if (existing && !existing.deletedAt) return existing;
+  if (existing && !existing.deletedAt) return normalizeSettings(existing);
   const { defaultSettings } = await import("@/lib/data/factories");
   return put(db.settings, "settings", defaultSettings());
+}
+
+function normalizeSettings(settings: Settings): Settings {
+  const stored = settings as Settings & {
+    profileRole?: string;
+    foremanName?: string;
+    seededRoleMigrated?: boolean;
+  };
+  return {
+    ...settings,
+    profileRole: stored.profileRole ?? "",
+    foremanName: stored.foremanName ?? "",
+    seededRoleMigrated: stored.seededRoleMigrated ?? false,
+  };
 }
 
 export async function saveSettings(settings: Settings): Promise<Settings> {

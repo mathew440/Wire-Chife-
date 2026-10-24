@@ -1,7 +1,9 @@
 import { db } from "@/lib/data/db";
 import { blankAttachment, blankPerson, blankProject, blankSchedule, blankTask, defaultSettings } from "@/lib/data/factories";
 import { textPdf } from "@/lib/data/sample-pdf";
+import { migrateSeededProjectManager } from "@/lib/data/role-migration";
 import { deleteProject, getSettings, removeSampleData, saveAttachment, savePerson, saveProject, saveSchedule, saveSettings, saveTask } from "@/lib/data/repo";
+import { SEEDED_MAT_ID, SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import type { Task } from "@/lib/data/types";
 
 /** Jobs loaded from the AKA Electric Drive read. Not a live field book. */
@@ -15,7 +17,7 @@ const PETER_SCHEDULE = "St. Peters Parish Hall Schedule #9-1 - Contract Baseline
 export const DRIVE_IDS = {
   findley: "sample-findley",
   peter: "sample-st-peter",
-  mat: "person-mat-hiner",
+  mat: SEEDED_MAT_ID,
 } as const;
 
 let seeding: Promise<void> | null = null;
@@ -26,10 +28,12 @@ export function resetSeedGate(): void {
 
 export function ensureSeeded(): Promise<void> {
   if (!seeding) {
-    seeding = seedIfNeeded().catch((error) => {
-      seeding = null;
-      throw error;
-    });
+    seeding = seedIfNeeded()
+      .then(() => migrateSeededProjectManager())
+      .catch((error) => {
+        seeding = null;
+        throw error;
+      });
   }
   return seeding;
 }
@@ -47,8 +51,8 @@ export async function seedSampleData(): Promise<void> {
   await savePerson(
     blankPerson({
       id: DRIVE_IDS.mat,
-      name: "Mat Hiner",
-      classification: "Foreman",
+      name: SEEDED_PROFILE_NAME,
+      classification: SEEDED_PROFILE_ROLE,
       phone: "",
       isSample: false,
     }),

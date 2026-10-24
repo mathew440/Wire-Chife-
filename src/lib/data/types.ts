@@ -160,10 +160,16 @@ export interface Attachment extends EntityMeta {
 export interface Settings extends EntityMeta {
   id: "local";
   profileName: string;
+  /** Role printed with the profile on reports. Default is Project Manager. */
+  profileRole: string;
+  /** Separate from the project manager. Blank until someone verifies the name. */
+  foremanName: string;
   companyName: string;
   samplesSeeded: boolean;
   /** Which Drive read is loaded. Missing or older values are replaced on open. */
   seedRevision: string;
+  /** True after the one-time Foreman → Project Manager seed correction. */
+  seededRoleMigrated: boolean;
 }
 
 export interface ChangeLogEntry {

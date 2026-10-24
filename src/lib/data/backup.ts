@@ -1,4 +1,5 @@
 import { db } from "@/lib/data/db";
+import { migrateSeededProjectManager } from "@/lib/data/role-migration";
 import type {
   Assignment,
   Attachment,
@@ -93,6 +94,7 @@ export async function importBackup(file: BackupFile): Promise<void> {
       if (file.settings) await db.settings.put(file.settings);
     },
   );
+  await migrateSeededProjectManager();
 }
 
 async function blobToBase64(blob: Blob): Promise<string> {

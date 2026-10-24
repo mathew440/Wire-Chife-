@@ -1,5 +1,5 @@
 import { db } from "@/lib/data/db";
-import { listAllEstimates, listAllReports, listAssignments, listProjects, listTasks } from "@/lib/data/repo";
+import { getSettings, listAllEstimates, listAllReports, listAssignments, listPeople, listProjects, listTasks } from "@/lib/data/repo";
 import { DRIVE_IDS, ensureSeeded, resetSeedGate } from "@/lib/data/seed";
 import { beforeEach, describe, expect, it } from "vitest";
 
@@ -34,5 +34,12 @@ describe("Drive seed as of 10/23/26", () => {
     expect(tasks.every((task) => task.status === "open" && task.dueDate == null)).toBe(true);
     expect(tasks.some((task) => task.title.includes("340 vs 354"))).toBe(true);
     expect(tasks.some((task) => task.owner === "Mat Hiner" && task.title === "Tugger")).toBe(true);
+
+    const mat = (await listPeople()).find((person) => person.id === DRIVE_IDS.mat);
+    expect(mat?.classification).toBe("Project Manager");
+    const settings = await getSettings();
+    expect(settings.profileName).toBe("Mat Hiner");
+    expect(settings.profileRole).toBe("Project Manager");
+    expect(settings.foremanName).toBe("");
   });
 });

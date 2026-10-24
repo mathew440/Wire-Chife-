@@ -6,7 +6,8 @@ import { InlineError, PageFallback, StorageError } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { blankAssignment, blankPerson } from "@/lib/data/factories";
-import { deleteAssignment, deletePerson, listAssignments, listPeople, listProjects, saveAssignment, savePerson } from "@/lib/data/repo";
+import { deleteAssignment, deletePerson, getSettings, listAssignments, listPeople, listProjects, saveAssignment, savePerson, saveSettings } from "@/lib/data/repo";
+import { foremanDisplay, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import { addDays, formatDay, todayISO } from "@/lib/domain/dates";
 import type { Confirmation } from "@/lib/data/types";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -17,9 +18,10 @@ export function CrewBoard() {
   const { status, error } = useDbReady();
   const [day, setDay] = useState(todayISO());
   const [filter, setFilter] = useState("all");
-  const people = useLiveQuery(() => listPeople(), []);
-  const projects = useLiveQuery(() => listProjects(), []);
-  const assignments = useLiveQuery(() => listAssignments({ date: day }), [day]);
+  const people = useLiveQuery(() => (status === "ready" ? listPeople() : undefined), [status]);
+  const projects = useLiveQuery(() => (status === "ready" ? listProjects() : undefined), [status]);
+  const assignments = useLiveQuery(() => (status === "ready" ? listAssignments({ date: day }) : undefined), [status, day]);
+  const settings = useLiveQuery(() => (status === "ready" ? getSettings() : undefined), [status]);
   const [personId, setPersonId] = useState("");
   const [projectId, setProjectId] = useState("");
   const [area, setArea] = useState("");
@@ -27,12 +29,15 @@ export function CrewBoard() {
   const [confirmation, setConfirmation] = useState<Confirmation>("confirmed");
   const [name, setName] = useState("");
   const [classification, setClassification] = useState("Journeyman");
+  const [foremanDraft, setForemanDraft] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [removeId, setRemoveId] = useState<string | null>(null);
 
   if (status === "error") return <StorageError message={error ?? "Storage error"} />;
-  if (status !== "ready" || !people || !projects || !assignments) return <PageFallback />;
+  if (status !== "ready" || !people || !projects || !assignments || !settings) return <PageFallback />;
+
+  const foremanName = foremanDraft ?? settings.foremanName;
 
   const visible = assignments.filter((assignment) => filter === "all" || assignment.projectId === filter);
   const bench = people.filter((person) => !assignments.some((assignment) => assignment.personId === person.id));
@@ -75,7 +80,7 @@ export function CrewBoard() {
       <PageIntro
         eyebrow="Roster"
         title="Crew"
-        description="Who is on which job and area for the day. Assignments stay on the job you pick. No crew hours were in the Drive read, so these two jobs start with nobody assigned."
+        description={`Who is on which job and area for the day. ${settings.profileName} is ${settings.profileRole || SEEDED_PROFILE_ROLE}. Foreman: ${foremanDisplay(settings.foremanName)}. Assignments stay on the job you pick. No crew hours were in the Drive read, so these two jobs start with nobody assigned.`}
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button type="button" variant="outline" onClick={() => setDay(addDays(day, -1))}>
@@ -166,6 +171,21 @@ export function CrewBoard() {
         <Card className="bg-card text-base">
           <CardContent className="grid gap-3">
             <h2 className="font-display text-2xl font-bold">Roster</h2>
+            <Field label="Foreman" hint="Separate from the project manager. Leave blank until the name is verified.">
+              <TextField value={foremanName} placeholder="Needs verification" onChange={(event) => setForemanDraft(event.target.value)} />
+            </Field>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                void saveSettings({ ...settings, foremanName: foremanName.trim() }).then(() => {
+                  setForemanDraft(null);
+                  toast.success("Foreman saved on this device");
+                });
+              }}
+            >
+              Save foreman
+            </Button>
             <p className="text-sm text-muted-foreground">
               Not assigned {formatDay(day)}: {bench.length === 0 ? "everyone is on a job" : bench.map((person) => person.name).join(", ")}
             </p>
@@ -196,6 +216,7 @@ export function CrewBoard() {
             <div className="grid gap-2 sm:grid-cols-2">
               <Field label="Classification">
                 <SelectField value={classification} onChange={(event) => setClassification(event.target.value)}>
+                  <option>Project Manager</option>
                   <option>Foreman</option>
                   <option>Journeyman</option>
                   <option>Apprentice</option>

@@ -1,3 +1,4 @@
+import { foremanDisplay } from "@/lib/data/roles";
 import { confirmationLabel } from "@/lib/domain/dates";
 import { weatherLabel } from "@/lib/domain/reports";
 import type { Confirmation } from "@/lib/data/types";
@@ -6,6 +7,8 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf
 export interface DailyReportPdfInput {
   company: string;
   preparedBy: string;
+  /** Blank when the foreman still needs verification. */
+  foremanName: string;
   projectName: string;
   jobNumber: string;
   gc: string;
@@ -56,6 +59,7 @@ export async function buildDailyReportPdf(input: DailyReportPdfInput): Promise<U
     MUTED,
   );
   sheet.paragraph(`Prepared by ${input.preparedBy}  ·  ${input.company}`, 9, MUTED);
+  sheet.paragraph(`Foreman: ${foremanDisplay(input.foremanName)}`, 9, input.foremanName.trim() ? INK : ORANGE);
   sheet.gap(8);
   sheet.paragraph(weather.entered ? `Weather: ${weather.text}  ·  entered on this report` : `Weather: ${weather.text}`, 10, weather.entered ? INK : ORANGE, bold);
   sheet.gap(6);

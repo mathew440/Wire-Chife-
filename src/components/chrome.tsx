@@ -5,6 +5,7 @@ import { useDbReady } from "@/components/db-ready";
 import { ServiceWorkerEffect } from "@/components/pwa";
 import { Toaster } from "@/components/ui/sonner";
 import { getProject, getSettings } from "@/lib/data/repo";
+import { SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ClipboardList, Database, FolderOpen, HardHat, LayoutDashboard, Package, Users } from "lucide-react";
 import { AppLink as Link, useAppPathname } from "@/components/app-link";
@@ -39,7 +40,10 @@ function MobileBar() {
         <Mark className="size-10" />
         <span className="font-display text-xl font-bold tracking-[0.14em]">WIRE CHIEF</span>
       </Link>
-      <span className="max-w-[40%] truncate text-sm text-muted-foreground">{settings?.profileName ?? "This device"}</span>
+      <span className="max-w-[46%] text-right text-sm leading-tight text-muted-foreground">
+        <span className="block truncate">{settings?.profileName || SEEDED_PROFILE_NAME}</span>
+        <span className="block truncate text-xs">{settings?.profileRole || SEEDED_PROFILE_ROLE}</span>
+      </span>
     </header>
   );
 }
@@ -95,7 +99,8 @@ function Sidebar() {
         </div>
       ) : null}
       <p className="mt-auto px-5 py-4 text-xs text-muted-foreground">
-        {settings?.profileName ?? "Mat Hiner"}
+        {settings?.profileName || SEEDED_PROFILE_NAME}
+        <span className="mt-1 block">{settings?.profileRole || SEEDED_PROFILE_ROLE}</span>
         <span className="mt-1 block">Saved on this device. No account.</span>
       </p>
     </aside>
