@@ -1,0 +1,176 @@
+/**
+ * Wire Chief records live on the device. Every row carries sync metadata so a
+ * later multi-user backend can push the change log without reshaping the jobs.
+ * v1 never uploads these fields.
+ */
+export type SyncState = "local" | "pending" | "synced";
+
+export interface EntityMeta {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  syncState: SyncState;
+  rev: number;
+}
+
+export type ProjectStatus = "unverified" | "bidding" | "active" | "punch" | "on-hold" | "complete";
+
+export interface Contact {
+  id: string;
+  name: string;
+  role: string;
+  phone: string;
+  email: string;
+}
+
+export interface Project extends EntityMeta {
+  name: string;
+  jobNumber: string;
+  gc: string;
+  location: string;
+  description: string;
+  status: ProjectStatus;
+  contacts: Contact[];
+  isSample: boolean;
+}
+
+export type Confirmation = "tentative" | "confirmed";
+
+export type ScheduleKind = "inspection" | "delivery" | "meeting" | "milestone" | "other";
+
+export interface ScheduleDate extends EntityMeta {
+  projectId: string;
+  label: string;
+  date: string;
+  confirmation: Confirmation;
+  kind: ScheduleKind;
+  notes: string;
+}
+
+export interface Person extends EntityMeta {
+  name: string;
+  classification: string;
+  phone: string;
+  isSample: boolean;
+}
+
+export interface Assignment extends EntityMeta {
+  personId: string;
+  projectId: string;
+  date: string;
+  area: string;
+  hours: number | null;
+  confirmation: Confirmation;
+}
+
+export interface ManpowerEntry {
+  id: string;
+  personId: string | null;
+  name: string;
+  hours: number | null;
+  area: string;
+}
+
+export interface DailyReport extends EntityMeta {
+  projectId: string;
+  date: string;
+  dateConfirmation: Confirmation;
+  /** Empty unless someone typed it. Wire Chief does not look weather up. */
+  weatherText: string;
+  /** True only when weatherText was entered. Never inferred. */
+  weatherEntered: boolean;
+  manpower: ManpowerEntry[];
+  completed: string;
+  ongoing: string;
+  planned: string;
+  needsVerification: string;
+  punchItems: string;
+  inspections: string;
+  materials: string;
+  blockers: string;
+  decisions: string;
+  tomorrowOutlook: string;
+  dictatedNotes: string;
+  isSample: boolean;
+}
+
+export type ReportSectionKey = "completed" | "ongoing" | "planned" | "needsVerification";
+
+export type ReportNoteKey =
+  | "punchItems"
+  | "inspections"
+  | "materials"
+  | "blockers"
+  | "decisions"
+  | "tomorrowOutlook";
+
+export type TaskStatus = "open" | "in-progress" | "blocked" | "done";
+
+export interface Task extends EntityMeta {
+  projectId: string;
+  title: string;
+  details: string;
+  owner: string;
+  dueDate: string | null;
+  dueConfirmation: Confirmation;
+  status: TaskStatus;
+  /** What document or person supports the status. */
+  evidence: string;
+  isSample: boolean;
+}
+
+export interface MaterialLine {
+  id: string;
+  item: string;
+  size: string;
+  qty: number;
+  unit: string;
+}
+
+export type DurationUnit = "hours" | "days";
+
+export interface Estimate extends EntityMeta {
+  projectId: string;
+  title: string;
+  scope: string;
+  materials: MaterialLine[];
+  crewSize: number;
+  duration: number;
+  durationUnit: DurationUnit;
+  notes: string;
+  neededBy: string | null;
+  neededByConfirmation: Confirmation;
+  isSample: boolean;
+}
+
+export type AttachmentParent = "project" | "report" | "task" | "estimate";
+
+export interface Attachment extends EntityMeta {
+  projectId: string;
+  parentType: AttachmentParent;
+  parentId: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  blob: Blob;
+  isSample: boolean;
+}
+
+export interface Settings extends EntityMeta {
+  id: "local";
+  profileName: string;
+  companyName: string;
+  samplesSeeded: boolean;
+  /** Which Drive read is loaded. Missing or older values are replaced on open. */
+  seedRevision: string;
+}
+
+export interface ChangeLogEntry {
+  id: string;
+  entity: string;
+  entityId: string;
+  op: "upsert" | "delete";
+  rev: number;
+  at: string;
+}
