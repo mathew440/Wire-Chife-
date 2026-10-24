@@ -5,16 +5,16 @@ import { describe, expect, it } from "vitest";
 describe("Pages base path", () => {
   it("prefixes app links and strips the public prefix back off", () => {
     expect(withBasePath("/")).toBe("/Wire-Chife-/");
-    expect(withBasePath("/projects/sample-findley")).toBe("/Wire-Chife-/projects/sample-findley/");
+    expect(withBasePath("/projects/sample-job-a")).toBe("/Wire-Chife-/projects/sample-job-a/");
     expect(withBasePath("/Wire-Chife-/crew/")).toBe("/Wire-Chife-/crew/");
-    expect(appPathname("/Wire-Chife-/projects/sample-findley/")).toBe("/projects/sample-findley");
+    expect(appPathname("/Wire-Chife-/projects/sample-job-a/")).toBe("/projects/sample-job-a");
     expect(appPathname("/Wire-Chife-/")).toBe("/");
   });
 
   it("opens a job id that was not known at build time", () => {
-    expect(matchRoute("/Wire-Chife-/projects/sample-findley/reports/new/")).toEqual({
+    expect(matchRoute("/Wire-Chife-/projects/sample-job-a/reports/new/")).toEqual({
       name: "report",
-      id: "sample-findley",
+      id: "sample-job-a",
       reportId: "new",
     });
     expect(matchRoute("/projects/new")).toEqual({ name: "project-new" });

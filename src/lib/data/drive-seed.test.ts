@@ -1,6 +1,7 @@
 import { db } from "@/lib/data/db";
-import { getSettings, listAllEstimates, listAllReports, listAssignments, listPeople, listProjects, listTasks } from "@/lib/data/repo";
-import { DRIVE_IDS, ensureSeeded, resetSeedGate } from "@/lib/data/seed";
+import { blankProject, defaultSettings } from "@/lib/data/factories";
+import { getSettings, listAllEstimates, listAllReports, listAssignments, listPeople, listProjects, listTasks, saveProject, saveSettings } from "@/lib/data/repo";
+import { DRIVE_SEED_REVISION, ensureSeeded, resetSeedGate } from "@/lib/data/seed";
 import { beforeEach, describe, expect, it } from "vitest";
 
 beforeEach(async () => {
@@ -9,37 +10,35 @@ beforeEach(async () => {
   await db.open();
 });
 
-describe("Drive seed as of 10/23/26", () => {
-  it("loads only Findley and St. Peter, with no invented report, hours, or prices", async () => {
+describe("empty starter book", () => {
+  it("opens with no jobs and the default project manager profile", async () => {
     await ensureSeeded();
-    const projects = await listProjects();
-    expect(projects.map((project) => project.name).sort()).toEqual(["Findley State Park", "St. Peter Church"]);
 
-    const findley = projects.find((project) => project.id === DRIVE_IDS.findley);
-    const peter = projects.find((project) => project.id === DRIVE_IDS.peter);
-    expect(findley?.jobNumber).toBe("26194");
-    expect(findley?.status).toBe("unverified");
-    expect(findley?.description).toContain("119 pads");
-    expect(findley?.description).toContain("needs verification");
-    expect(peter?.jobNumber).toBe("");
-    expect(peter?.description).toContain("Schedule #9-1");
-    expect(peter?.status).toBe("unverified");
-
+    expect(await listProjects()).toEqual([]);
+    expect(await listPeople()).toEqual([]);
     expect(await listAllReports()).toEqual([]);
     expect(await listAllEstimates()).toEqual([]);
     expect(await listAssignments()).toEqual([]);
+    expect(await listTasks()).toEqual([]);
 
-    const tasks = await listTasks(DRIVE_IDS.findley);
-    expect(tasks.length).toBeGreaterThan(0);
-    expect(tasks.every((task) => task.status === "open" && task.dueDate == null)).toBe(true);
-    expect(tasks.some((task) => task.title.includes("340 vs 354"))).toBe(true);
-    expect(tasks.some((task) => task.owner === "Mat Hiner" && task.title === "Tugger")).toBe(true);
-
-    const mat = (await listPeople()).find((person) => person.id === DRIVE_IDS.mat);
-    expect(mat?.classification).toBe("Project Manager");
     const settings = await getSettings();
     expect(settings.profileName).toBe("Mat Hiner");
     expect(settings.profileRole).toBe("Project Manager");
     expect(settings.foremanName).toBe("");
+    expect(settings.seedRevision).toBe(DRIVE_SEED_REVISION);
+    expect(settings.samplesSeeded).toBe(false);
+  });
+
+  it("does not delete jobs already stored on the device", async () => {
+    await saveProject(blankProject({ id: "kept-job", name: "Sample Job A", jobNumber: "1001", isSample: true }));
+    await saveSettings({ ...defaultSettings(), samplesSeeded: true, seedRevision: "" });
+    resetSeedGate();
+
+    await ensureSeeded();
+
+    const projects = await listProjects();
+    expect(projects.map((project) => project.name)).toEqual(["Sample Job A"]);
+    expect(projects[0]?.jobNumber).toBe("1001");
+    expect((await getSettings()).samplesSeeded).toBe(true);
   });
 });

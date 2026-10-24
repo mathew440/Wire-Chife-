@@ -21,26 +21,26 @@ beforeEach(async () => {
 
 describe("jobs stay separate", () => {
   it("does not show one job's report or open item on another job", async () => {
-    const findley = await saveProject(blankProject({ name: "Findley State Park", jobNumber: "26194", isSample: true }));
-    const peter = await saveProject(blankProject({ name: "St. Peter Church" }));
-    await saveReport(blankReport(findley.id, { needsVerification: "Pull plan needs verification." }));
-    await saveTask(blankTask(findley.id, { title: "Confirm NTP", evidence: "Drive folder 26194 as of 10/23/26" }));
+    const jobA = await saveProject(blankProject({ name: "Sample Job A", jobNumber: "1001", isSample: true }));
+    const jobB = await saveProject(blankProject({ name: "Sample Job B" }));
+    await saveReport(blankReport(jobA.id, { needsVerification: "Scope needs verification." }));
+    await saveTask(blankTask(jobA.id, { title: "Confirm the date", evidence: "Noted on this job." }));
 
-    expect(await listReports(peter.id)).toEqual([]);
-    expect(await listTasks(peter.id)).toEqual([]);
-    expect((await listReports(findley.id))[0]?.needsVerification).toBe("Pull plan needs verification.");
+    expect(await listReports(jobB.id)).toEqual([]);
+    expect(await listTasks(jobB.id)).toEqual([]);
+    expect((await listReports(jobA.id))[0]?.needsVerification).toBe("Scope needs verification.");
   });
 
   it("refuses to file a drawing from one job onto another", async () => {
-    const findley = await saveProject(blankProject({ name: "Findley State Park" }));
-    const peter = await saveProject(blankProject({ name: "St. Peter Church" }));
-    const report = await saveReport(blankReport(findley.id, { needsVerification: "Scope needs verification." }));
-    await expect(assertAttachmentParent(peter.id, "report", report.id)).rejects.toThrow(/not on this job/);
+    const jobA = await saveProject(blankProject({ name: "Sample Job A" }));
+    const jobB = await saveProject(blankProject({ name: "Sample Job B" }));
+    const report = await saveReport(blankReport(jobA.id, { needsVerification: "Scope needs verification." }));
+    await expect(assertAttachmentParent(jobB.id, "report", report.id)).rejects.toThrow(/not on this job/);
     await expect(
       saveAttachment(
-        blankAttachment(peter.id, {
+        blankAttachment(jobB.id, {
           parentType: "project",
-          parentId: findley.id,
+          parentId: jobA.id,
           fileName: "cross.pdf",
           mimeType: "application/pdf",
           blob: new Blob(["nope"], { type: "application/pdf" }),
@@ -50,14 +50,14 @@ describe("jobs stay separate", () => {
   });
 
   it("stores weather as unverified when the field is blank", async () => {
-    const job = await saveProject(blankProject({ name: "St. Peter Church" }));
+    const job = await saveProject(blankProject({ name: "Sample Job B" }));
     const saved = await saveReport(blankReport(job.id, { weatherText: "  ", weatherEntered: true }));
     expect(saved.weatherEntered).toBe(false);
     expect(saved.weatherText).toBe("");
   });
 
   it("refuses to mark an item done without evidence", async () => {
-    const job = await saveProject(blankProject({ name: "Findley State Park" }));
+    const job = await saveProject(blankProject({ name: "Sample Job A" }));
     await expect(saveTask(blankTask(job.id, { title: "Close it", status: "done", evidence: "  " }))).rejects.toThrow(/evidence/i);
   });
 });

@@ -32,12 +32,7 @@ On iPhone, open that address in Safari, then Share → Add to Home Screen. Open 
 
 ## What's in the book
 
-Two jobs are loaded the first time you open the app, from the AKA Electric Google Drive as of **10/23/26**. They are marked **DRIVE 10/23/26** and stay separate from each other:
-
-- **Findley State Park** — AKA Job 26194. Wire pull in conduit bored by others. Facts that were not in that folder are marked needs verification.
-- **St. Peter Church** — St. Peters Parish Hall. The only schedule on file is stale. Other details need verification.
-
-You can remove them on the Data page. A backup JSON file is the way to move the book to another device until cloud sync exists.
+The first open starts empty. There are no built-in jobs. Add a job, or import a backup JSON file from Data. That file is the way to move the book to another device until cloud sync exists. A backup from an earlier version still loads, including one whose settings already mark a starter book as loaded.
 
 Daily reports keep Completed, Ongoing, Planned, and Needs verification as separate notes. Nothing promotes a note from one to another. Weather stays **unverified** until you type it. Every date can be marked tentative or confirmed. Estimates are quantities and crew size × duration, with no price fields, and they export as their own PDF.
 

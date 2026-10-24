@@ -44,7 +44,7 @@ export function JobsHome() {
 
       {hasSample ? (
         <p className="rounded-xl border border-orange/40 bg-orange/10 px-4 py-3 text-sm text-foreground">
-          Findley State Park and St. Peter Church are from the AKA Electric Google Drive as of 10/23/26. They are marked DRIVE 10/23/26 and stay separate. Anything that file set did not settle is marked needs verification. Remove them on the Data page when this book should only hold live work.
+          Some jobs on this device came from an earlier starter book. They stay separate from jobs you create. Remove them on the Data page when this book should only hold live work.
         </p>
       ) : null}
 

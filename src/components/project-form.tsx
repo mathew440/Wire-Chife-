@@ -76,11 +76,11 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
         <ProjectStatusPill status={draft.status} />
       </div>
       <Field label="Job name">
-        <TextField value={draft.name} onChange={(event) => update({ name: event.target.value })} placeholder="Findley State Park" required />
+        <TextField value={draft.name} onChange={(event) => update({ name: event.target.value })} placeholder="Sample Job A" required />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Job number">
-          <TextField value={draft.jobNumber} onChange={(event) => update({ jobNumber: event.target.value })} placeholder="26194" />
+          <TextField value={draft.jobNumber} onChange={(event) => update({ jobNumber: event.target.value })} placeholder="1001" />
         </Field>
         <Field label="Status">
           <SelectField value={draft.status} onChange={(event) => update({ status: event.target.value as ProjectStatus })}>
@@ -100,7 +100,7 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
         <TextField value={draft.location} onChange={(event) => update({ location: event.target.value })} placeholder="City, OH" />
       </Field>
       <Field label="What this job is">
-        <TextField value={draft.description} onChange={(event) => update({ description: event.target.value })} placeholder="Assisted living, underground campground, hall addition" />
+        <TextField value={draft.description} onChange={(event) => update({ description: event.target.value })} placeholder="Scope of work" />
       </Field>
       <div className="grid gap-3">
         <div className="flex items-center justify-between gap-2">

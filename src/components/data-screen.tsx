@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { backupFileName, exportBackup, importBackup, type BackupFile } from "@/lib/data/backup";
 import { getSettings, listChangelog, removeSampleData, saveSettings } from "@/lib/data/repo";
-import { reloadSampleData } from "@/lib/data/seed";
 import { foremanDisplay, preparedByLabel, SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import { localOnlySync } from "@/lib/sync/adapter";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -143,27 +142,18 @@ export function DataScreen() {
         </Card>
         <Card className="bg-card text-base">
           <CardContent className="grid gap-3">
-            <h2 className="font-display text-2xl font-bold">Drive jobs</h2>
+            <h2 className="font-display text-2xl font-bold">Starter jobs</h2>
             <p className="text-sm text-muted-foreground">
-              Findley State Park and St. Peter Church are labeled DRIVE 10/23/26. Removing them leaves any job you created.
+              Jobs marked SAMPLE came from an earlier version of this app. Removing them leaves any job you created.
             </p>
             <Button
               type="button"
               variant="outline"
               onClick={() => {
-                void removeSampleData().then(() => toast.success("Drive jobs removed"));
+                void removeSampleData().then(() => toast.success("Starter jobs removed"));
               }}
             >
-              Remove Drive jobs
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                void reloadSampleData().then(() => toast.success("Drive jobs reloaded"));
-              }}
-            >
-              Reload Drive jobs
+              Remove starter jobs
             </Button>
           </CardContent>
         </Card>

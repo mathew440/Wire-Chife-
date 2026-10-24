@@ -42,10 +42,10 @@ const report = {
   company: "AKA Electric",
   preparedBy: "Mat Hiner, Project Manager",
   foremanName: "",
-  projectName: "Findley State Park",
-  jobNumber: "26194",
+  projectName: "Sample Job A",
+  jobNumber: "1001",
   gc: "Needs verification",
-  location: "Findley State Park",
+  location: "Sample site",
   isSample: true,
   date: "2026-10-23",
   dateConfirmation: "tentative" as const,
@@ -55,7 +55,7 @@ const report = {
   completed: "",
   ongoing: "",
   planned: "",
-  needsVerification: "Pedestal, panel, and stub scope needs verification.",
+  needsVerification: "Scope needs verification.",
   punchItems: "",
   inspections: "",
   materials: "",
@@ -72,7 +72,7 @@ describe("PDF export", () => {
     expect(doc.getPageCount()).toBeGreaterThan(0);
     expect(doc.getSubject()).toBe("Weather unverified");
     expect(doc.getKeywords()).toContain("weather-unverified");
-    expect(doc.getTitle()).toContain("Findley State Park");
+    expect(doc.getTitle()).toContain("Sample Job A");
     const text = pdfText(bytes);
     expect(text).toContain("Prepared by Mat Hiner, Project Manager");
     expect(text).toContain("Foreman: Needs verification");
@@ -83,13 +83,13 @@ describe("PDF export", () => {
       company: "AKA Electric",
       preparedBy: "Mat Hiner, Project Manager",
       foremanName: "",
-      projectName: "Findley State Park",
-      jobNumber: "26194",
+      projectName: "Sample Job A",
+      jobNumber: "1001",
       gc: "Needs verification",
-      location: "Findley State Park",
+      location: "Sample site",
       isSample: true,
       title: "Wire pull — quantities not taken off",
-      scope: "AKA pulls wire in conduit bored by others. 119 pads. No priced takeoff.",
+      scope: "Sample scope. No priced takeoff.",
       materials: [],
       crewSize: 0,
       duration: 0,
@@ -107,8 +107,8 @@ describe("PDF export", () => {
     expect(text).toContain("Foreman: Needs verification");
   });
 
-  it("writes a Drive note PDF that a viewer can open", async () => {
-    const blob = textPdf("Findley State Park - Drive notes 10/23/26", ["119 pads", "Job 26194"]);
+  it("writes a note PDF that a viewer can open", async () => {
+    const blob = textPdf("Sample Job A notes", ["Sample scope", "Job 1001"]);
     const doc = await PDFDocument.load(await blob.arrayBuffer());
     expect(doc.getPageCount()).toBe(1);
   });
