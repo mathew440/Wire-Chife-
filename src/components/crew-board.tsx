@@ -80,7 +80,7 @@ export function CrewBoard() {
       <PageIntro
         eyebrow="Roster"
         title="Crew"
-        description={`Who is on which job and area for the day. ${settings.profileName} is ${settings.profileRole || SEEDED_PROFILE_ROLE}. Foreman: ${foremanDisplay(settings.foremanName)}. Assignments stay on the job you pick. No crew hours were in the Drive read, so these two jobs start with nobody assigned.`}
+        description={`Who is on which job and area for the day. ${settings.profileName} is ${settings.profileRole || SEEDED_PROFILE_ROLE}. Foreman: ${foremanDisplay(settings.foremanName)}. Assignments stay on the job you pick.`}
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button type="button" variant="outline" onClick={() => setDay(addDays(day, -1))}>

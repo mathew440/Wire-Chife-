@@ -44,7 +44,7 @@ export async function buildEstimatePdf(input: EstimatePdfInput): Promise<Uint8Ar
   page.drawText("WIRE CHIEF", { x: 32, y: 764, size: 14, font: bold, color: PAPER });
   page.drawText("MATERIAL AND LABOR TAKEOFF", { x: 32, y: 746, size: 10, font, color: rgb(0.98, 0.84, 0.7) });
   if (input.isSample) {
-    const sample = "DRIVE AS OF 10/23/26";
+    const sample = "SAMPLE";
     page.drawText(sample, { x: 580 - bold.widthOfTextAtSize(sample, 9), y: 750, size: 9, font: bold, color: rgb(0.95, 0.62, 0.32) });
   }
 
@@ -120,7 +120,7 @@ export async function buildEstimatePdf(input: EstimatePdfInput): Promise<Uint8Ar
   }
 
   page.drawText(
-    `Wire Chief takeoff  ·  quantities only, no pricing  ·  ${input.isSample ? "DRIVE AS OF 10/23/26  ·  " : ""}not a quote`,
+    `Wire Chief takeoff  ·  quantities only, no pricing  ·  ${input.isSample ? "SAMPLE  ·  " : ""}not a quote`,
     { x: 32, y: 28, size: 8, font, color: MUTED },
   );
 

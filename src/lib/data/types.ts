@@ -166,7 +166,10 @@ export interface Settings extends EntityMeta {
   foremanName: string;
   companyName: string;
   samplesSeeded: boolean;
-  /** Which Drive read is loaded. Missing or older values are replaced on open. */
+  /**
+   * Older apps set this once a starter book had been considered. Matching it
+   * means this device is left alone. It does not cause jobs to be inserted.
+   */
   seedRevision: string;
   /** True after the one-time Foreman → Project Manager seed correction. */
   seededRoleMigrated: boolean;

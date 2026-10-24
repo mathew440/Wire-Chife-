@@ -136,7 +136,7 @@ class Sheet {
     const width = this.bold.widthOfTextAtSize(right, 11);
     this.page.drawText(right, { x: 580 - width, y: 758, size: 11, font: this.bold, color: PAPER });
     if (input.isSample) {
-      const sample = "DRIVE AS OF 10/23/26";
+      const sample = "SAMPLE";
       const sampleWidth = this.bold.widthOfTextAtSize(sample, 9);
       this.page.drawText(sample, { x: 580 - sampleWidth, y: 744, size: 9, font: this.bold, color: rgb(0.95, 0.62, 0.32) });
     }
@@ -217,7 +217,7 @@ class Sheet {
     const pages = this.doc.getPages();
     pages.forEach((page, index) => {
       page.drawText(
-        `Wire Chief local record  ·  not a certified payroll  ·  page ${index + 1} of ${pages.length}${isSample ? "  ·  DRIVE AS OF 10/23/26" : ""}`,
+        `Wire Chief local record  ·  not a certified payroll  ·  page ${index + 1} of ${pages.length}${isSample ? "  ·  SAMPLE" : ""}`,
         { x: 32, y: 28, size: 8, font: this.font, color: MUTED },
       );
     });

@@ -23,7 +23,7 @@ export function Mark({ className }: { className?: string }) {
 export function SampleBadge() {
   return (
     <span className="inline-flex h-7 items-center rounded-md bg-orange px-2 text-xs font-bold tracking-wide text-orange-ink">
-      DRIVE 10/23/26
+      SAMPLE
     </span>
   );
 }
