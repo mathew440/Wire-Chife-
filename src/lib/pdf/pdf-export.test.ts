@@ -2,6 +2,7 @@ import { inflateSync } from "node:zlib";
 import { PDFDocument } from "pdf-lib";
 import { buildDailyReportPdf } from "@/lib/pdf/daily-report-pdf";
 import { buildEstimatePdf } from "@/lib/pdf/estimate-pdf";
+import { buildWeeklySummaryPdf } from "@/lib/pdf/weekly-summary-pdf";
 import { textPdf } from "@/lib/data/sample-pdf";
 import { describe, expect, it } from "vitest";
 
@@ -105,6 +106,50 @@ describe("PDF export", () => {
     const text = pdfText(bytes);
     expect(text).toContain("Prepared by Mat Hiner, Project Manager");
     expect(text).toContain("Foreman: Needs verification");
+  });
+
+  it("builds a weekly summary from saved reports and open items", async () => {
+    const bytes = await buildWeeklySummaryPdf({
+      company: "AKA Electric",
+      preparedBy: "Mat Hiner, Project Manager",
+      foremanName: "",
+      projectName: "Sample Job A",
+      jobNumber: "1001",
+      isSample: true,
+      weekEnding: "2026-10-24",
+      weekStart: "2026-10-18",
+      reports: [
+        {
+          date: "2026-10-23",
+          dateConfirmation: "tentative",
+          weatherText: "",
+          weatherEntered: false,
+          completed: "Pulled feeder",
+          ongoing: "",
+          planned: "",
+          needsVerification: "",
+          blockers: "",
+        },
+      ],
+      openItems: [{ title: "Confirm panel", owner: "GC", dueDate: "2026-10-25", status: "open", evidence: "Drawing note" }],
+      openLogs: [
+        {
+          kind: "submittal",
+          number: "S-1",
+          description: "Panel schedule",
+          status: "submitted",
+          dueDate: "2026-10-28",
+          ballInCourt: "GC",
+        },
+      ],
+    });
+    const text = pdfText(bytes);
+    expect(text).toContain("WEEKLY SUMMARY");
+    expect(text).toContain("Prepared by Mat Hiner, Project Manager");
+    expect(text).toContain("Pulled feeder");
+    expect(text).toContain("Confirm panel");
+    expect(text).toContain("S-1");
+    expect(text).toContain("Weather: not entered");
   });
 
   it("writes a note PDF that a viewer can open", async () => {

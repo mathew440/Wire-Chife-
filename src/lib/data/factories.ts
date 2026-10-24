@@ -7,6 +7,8 @@ import type {
   Contact,
   DailyReport,
   Estimate,
+  LogItem,
+  LogKind,
   MaterialLine,
   Person,
   Project,
@@ -28,7 +30,7 @@ function meta(id = newId()) {
 }
 
 export function blankContact(partial: Partial<Contact> = {}): Contact {
-  return { id: newId(), name: "", role: "", phone: "", email: "", ...partial };
+  return { id: newId(), name: "", role: "", phone: "", email: "", company: "", ...partial };
 }
 
 export function blankProject(partial: Partial<Project> = {}): Project {
@@ -134,13 +136,36 @@ export function blankEstimate(projectId: string, partial: Partial<Estimate> = {}
 }
 
 export function blankSchedule(projectId: string, partial: Partial<ScheduleDate> = {}): ScheduleDate {
+  const date = partial.date || todayISO();
+  const endDate = partial.endDate || date;
   return {
     ...meta(),
     projectId,
     label: "",
-    date: todayISO(),
     confirmation: "tentative",
     kind: "other",
+    notes: "",
+    source: "",
+    asOf: "",
+    ...partial,
+    date,
+    endDate,
+  };
+}
+
+export function blankLogItem(projectId: string, kind: LogKind, partial: Partial<LogItem> = {}): LogItem {
+  return {
+    ...meta(),
+    projectId,
+    kind,
+    number: "",
+    specSection: "",
+    description: "",
+    sentDate: null,
+    dueDate: null,
+    status: "not-submitted",
+    ballInCourt: "",
+    contactId: null,
     notes: "",
     ...partial,
   };
@@ -157,6 +182,9 @@ export function blankAttachment(
     parentId: projectId,
     size: partial.blob.size,
     isSample: false,
+    area: "",
+    caption: "",
+    takenDate: null,
     ...partial,
   };
 }
@@ -172,5 +200,6 @@ export function defaultSettings(): Settings {
     samplesSeeded: false,
     seedRevision: "",
     seededRoleMigrated: false,
+    lastNotifiedOn: "",
   };
 }

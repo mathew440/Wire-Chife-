@@ -1,11 +1,11 @@
 "use client";
 
-import { Field, PageIntro, TextField } from "@/components/bits";
+import { ConfirmDialog, Field, PageIntro, TextField } from "@/components/bits";
 import { useDbReady } from "@/components/db-ready";
 import { InlineError, PageFallback, StorageError } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { backupFileName, exportBackup, importBackup, type BackupFile } from "@/lib/data/backup";
+import { backupFileName, exportBackup, importBackup, importJob, jobsInBackup, type BackupFile } from "@/lib/data/backup";
 import { getSettings, listChangelog, removeSampleData, saveSettings } from "@/lib/data/repo";
 import { foremanDisplay, preparedByLabel, SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import { localOnlySync } from "@/lib/sync/adapter";
@@ -22,6 +22,10 @@ export function DataScreen() {
   const [foreman, setForeman] = useState<string | null>(null);
   const [company, setCompany] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [replaceArmed, setReplaceArmed] = useState(false);
+  const [replaceFile, setReplaceFile] = useState<BackupFile | null>(null);
+  const [mergeFile, setMergeFile] = useState<BackupFile | null>(null);
+  const [mergeJobId, setMergeJobId] = useState<string | null>(null);
   const offline = useOffline();
 
   if (status === "error") return <StorageError message={error ?? "Storage error"} />;
@@ -67,15 +71,38 @@ export function DataScreen() {
     toast.success("Backup downloaded");
   }
 
-  async function restore(file: File | undefined) {
-    if (!file) return;
+  async function readBackup(file: File | undefined): Promise<BackupFile | null> {
+    if (!file) return null;
     setFormError(null);
     try {
-      const parsed = JSON.parse(await file.text()) as BackupFile;
-      await importBackup(parsed);
-      toast.success("Backup restored on this device");
+      return JSON.parse(await file.text()) as BackupFile;
+    } catch (caught) {
+      setFormError(caught instanceof Error ? caught.message : "Could not read that file");
+      return null;
+    }
+  }
+
+  async function confirmReplace() {
+    if (!replaceFile) return;
+    try {
+      await importBackup(replaceFile);
+      setReplaceFile(null);
+      setReplaceArmed(false);
+      toast.success("Backup replaced the book on this device");
     } catch (caught) {
       setFormError(caught instanceof Error ? caught.message : "Could not restore that file");
+    }
+  }
+
+  async function confirmMerge() {
+    if (!mergeFile || !mergeJobId) return;
+    try {
+      const chosen = jobsInBackup(mergeFile).find((job) => job.id === mergeJobId);
+      await importJob(mergeFile, mergeJobId);
+      setMergeJobId(null);
+      toast.success(chosen ? `${chosen.name} added on this device` : "Job added on this device");
+    } catch (caught) {
+      setFormError(caught instanceof Error ? caught.message : "Could not add that job");
     }
   }
 
@@ -119,24 +146,80 @@ export function DataScreen() {
           <CardContent className="grid gap-3">
             <h2 className="font-display text-2xl font-bold">Backup</h2>
             <p className="text-sm text-muted-foreground">
-              Jobs live in this phone&apos;s storage, not on a server. Export a JSON file of every job, photo, and PDF before you clear the browser. On iPhone, share it into Files. Restore replaces what is on this device.
+              Jobs, photos, and logs live in this phone&apos;s storage. Export a JSON file before you change phones. On iPhone, share it into Files.
             </p>
             <Button type="button" onClick={() => void download()}>
               Export backup
             </Button>
-            <label className="grid gap-2">
-              <span className="text-sm font-bold">Import a backup</span>
-              <input
-                type="file"
-                accept="application/json"
-                className="block h-12 w-full text-base file:mr-3 file:h-12 file:rounded-lg file:border-0 file:bg-secondary file:px-4 file:font-bold"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  void restore(file);
-                  event.target.value = "";
-                }}
-              />
-            </label>
+            <div className="grid gap-2 rounded-lg bg-background p-3 ring-1 ring-border">
+              <h3 className="font-display text-xl font-bold">Add one job</h3>
+              <p className="text-sm text-muted-foreground">
+                Other jobs on this phone stay. The job you pick is added or updated. Your name and role are not replaced. Rows you added here that are not in the file stay too.
+              </p>
+              <label className="grid gap-2">
+                <span className="text-sm font-bold">Choose a backup</span>
+                <input
+                  type="file"
+                  accept="application/json"
+                  className="block h-12 w-full text-base file:mr-3 file:h-12 file:rounded-lg file:border-0 file:bg-secondary file:px-4 file:font-bold"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    void readBackup(file).then((parsed) => {
+                      if (!parsed) return;
+                      try {
+                        const jobs = jobsInBackup(parsed);
+                        if (jobs.length === 0) {
+                          setFormError("That backup has no job to add.");
+                          return;
+                        }
+                        setMergeFile(parsed);
+                      } catch (caught) {
+                        setFormError(caught instanceof Error ? caught.message : "Could not read that file");
+                      }
+                    });
+                    event.target.value = "";
+                  }}
+                />
+              </label>
+              {mergeFile
+                ? jobsInBackup(mergeFile).map((job) => (
+                    <Button key={job.id} type="button" variant="outline" onClick={() => setMergeJobId(job.id)}>
+                      Add {job.name}
+                      {job.jobNumber ? ` · ${job.jobNumber}` : ""}
+                    </Button>
+                  ))
+                : null}
+            </div>
+            <div className="grid gap-2 rounded-lg border border-orange/50 bg-orange/10 p-3">
+              <h3 className="font-display text-xl font-bold">Replace every job</h3>
+              <p className="text-sm">
+                This wipes the book on this device and loads the file instead. Export a backup first. Jobs that are only on this phone will be gone.
+              </p>
+              <Button type="button" variant="outline" onClick={() => void download()}>
+                Export a backup first
+              </Button>
+              {replaceArmed ? (
+                <label className="grid gap-2">
+                  <span className="text-sm font-bold">File that will replace everything</span>
+                  <input
+                    type="file"
+                    accept="application/json"
+                    className="block h-12 w-full text-base file:mr-3 file:h-12 file:rounded-lg file:border-0 file:bg-secondary file:px-4 file:font-bold"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      void readBackup(file).then((parsed) => {
+                        if (parsed) setReplaceFile(parsed);
+                      });
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
+              ) : (
+                <Button type="button" variant="destructive" onClick={() => setReplaceArmed(true)}>
+                  I exported. Replace everything
+                </Button>
+              )}
+            </div>
             <InlineError message={formError} />
           </CardContent>
         </Card>
@@ -166,6 +249,26 @@ export function DataScreen() {
           </CardContent>
         </Card>
       </div>
+      <ConfirmDialog
+        open={replaceFile !== null}
+        onOpenChange={(open) => {
+          if (!open) setReplaceFile(null);
+        }}
+        title="Replace every job on this device?"
+        body="This erases the job book on this phone and loads the file instead. Export a backup first if you have not already."
+        confirmLabel="Replace everything"
+        onConfirm={() => void confirmReplace()}
+      />
+      <ConfirmDialog
+        open={mergeJobId !== null}
+        onOpenChange={(open) => {
+          if (!open) setMergeJobId(null);
+        }}
+        title="Add this job?"
+        body="Other jobs on this phone stay. Rows from the file are added or updated. Your profile is not replaced."
+        confirmLabel="Add job"
+        onConfirm={() => void confirmMerge()}
+      />
     </div>
   );
 }

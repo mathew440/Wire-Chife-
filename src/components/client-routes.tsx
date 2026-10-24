@@ -5,7 +5,11 @@ import { CrewBoard } from "@/components/crew-board";
 import { DataScreen } from "@/components/data-screen";
 import { EstimateEditor, EstimateList } from "@/components/estimate-screens";
 import { FileList, FileViewer } from "@/components/file-screens";
+import { ContactsDirectory } from "@/components/contacts-directory";
 import { JobsHome } from "@/components/jobs-home";
+import { LookaheadScreen } from "@/components/lookahead-screen";
+import { LogEditor, LogList } from "@/components/log-screens";
+import { PhotoLog } from "@/components/photo-screen";
 import { EditProject, ProjectForm } from "@/components/project-form";
 import { ProjectDashboard } from "@/components/project-dashboard";
 import { ReportEditor, ReportList } from "@/components/report-screens";
@@ -32,6 +36,8 @@ function RouteView({ route }: { route: AppRoute }) {
   const estimateParams = useMemo(() => Promise.resolve({ id: projectId, estimateId }), [projectId, estimateId]);
   const fileId = route.name === "file" ? route.fileId : "";
   const fileParams = useMemo(() => Promise.resolve({ id: projectId, fileId }), [projectId, fileId]);
+  const logId = route.name === "submittal" || route.name === "rfi" ? route.itemId : "";
+  const logParams = useMemo(() => Promise.resolve({ id: projectId, itemId: logId }), [projectId, logId]);
 
   switch (route.name) {
     case "home":
@@ -40,6 +46,8 @@ function RouteView({ route }: { route: AppRoute }) {
       return <CrewBoard />;
     case "data":
       return <DataScreen />;
+    case "contacts":
+      return <ContactsDirectory />;
     case "project-new":
       return <ProjectForm />;
     case "project":
@@ -62,6 +70,18 @@ function RouteView({ route }: { route: AppRoute }) {
       return <FileList params={projectParams} />;
     case "file":
       return <FileViewer params={fileParams} />;
+    case "submittals":
+      return <LogList params={projectParams} kind="submittal" />;
+    case "submittal":
+      return <LogEditor params={logParams} kind="submittal" />;
+    case "rfis":
+      return <LogList params={projectParams} kind="rfi" />;
+    case "rfi":
+      return <LogEditor params={logParams} kind="rfi" />;
+    case "lookahead":
+      return <LookaheadScreen params={projectParams} />;
+    case "photos":
+      return <PhotoLog params={projectParams} />;
     default:
       return (
         <EmptyState

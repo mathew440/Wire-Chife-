@@ -2,12 +2,13 @@
 
 import { DateFlag, PageIntro, ProjectStatusPill, SampleBadge } from "@/components/bits";
 import { useDbReady } from "@/components/db-ready";
+import { RemindersCard } from "@/components/reminders-card";
 import { EmptyState, PageFallback, StorageError } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { listAllEstimates, listAllReports, listAllSchedule, listAssignments, listPeople, listProjects, listTasks } from "@/lib/data/repo";
 import { projectPulse } from "@/lib/domain/dashboard";
-import { duePhrase, formatDay, todayISO } from "@/lib/domain/dates";
+import { formatDay, todayISO } from "@/lib/domain/dates";
 import { weatherLabel } from "@/lib/domain/reports";
 import { useLiveQuery } from "dexie-react-hooks";
 import { AppLink as Link } from "@/components/app-link";
@@ -29,14 +30,13 @@ export function JobsHome() {
   }
 
   const hasSample = projects.some((project) => project.isSample);
-  const overdue = tasks.filter((task) => task.status !== "done" && task.dueDate && task.dueDate < today);
 
   return (
     <div className="grid gap-6">
       <PageIntro
         eyebrow="AKA Electric"
         title="Jobs"
-        description="Each job keeps its own reports, crew, open items, estimates, and files. Nothing here leaves this device."
+        description="Each job keeps its own reports, logs, photos, crew, open items, estimates, and files. Nothing here leaves this device."
         actions={
           <Button nativeButton={false} render={<Link href="/projects/new" />}>New job</Button>
         }
@@ -112,31 +112,9 @@ export function JobsHome() {
         </div>
       )}
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <Card className="bg-card text-base">
-          <CardContent className="grid gap-3">
-            <h2 className="font-display text-2xl font-bold">Overdue on this device</h2>
-            {overdue.length === 0 ? (
-              <p className="text-muted-foreground">No open item is past its due date.</p>
-            ) : (
-              <ul className="grid gap-2">
-                {overdue.map((task) => {
-                  const project = projects.find((item) => item.id === task.projectId);
-                  return (
-                    <li key={task.id}>
-                      <Link href={`/projects/${task.projectId}/tasks/${task.id}`} className="grid gap-1 rounded-lg bg-background px-3 py-3 ring-1 ring-border">
-                        <span className="font-semibold">{task.title}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {project?.name ?? "Unknown job"} · {task.dueDate ? duePhrase(task.dueDate, today) : ""} · <DateFlag value={task.dueConfirmation} />
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+      <RemindersCard />
+
+      <section className="grid gap-4">
         <Card className="bg-card text-base">
           <CardContent className="grid gap-3">
             <div className="flex items-center justify-between gap-3">
