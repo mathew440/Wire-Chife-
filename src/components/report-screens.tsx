@@ -8,7 +8,7 @@ import { EmptyState, InlineError, PageFallback, StorageError } from "@/component
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { blankAttachment, blankReport } from "@/lib/data/factories";
-import { foremanDisplay, preparedByLabel } from "@/lib/data/roles";
+import { foremanDisplay, preparedByLabel, preparedByLine } from "@/lib/data/roles";
 import { newId } from "@/lib/data/id";
 import {
   deleteReport,
@@ -180,6 +180,7 @@ export function ReportEditor({ params }: { params: Promise<{ id: string; reportI
     const bytes = await buildDailyReportPdf({
       company: settings.companyName,
       preparedBy: preparedByLabel(settings.profileName, settings.profileRole),
+      email: settings.profileEmail,
       foremanName: settings.foremanName,
       projectName: project.name,
       jobNumber: project.jobNumber,
@@ -237,7 +238,7 @@ export function ReportEditor({ params }: { params: Promise<{ id: string; reportI
       <PageIntro
         eyebrow={project.name}
         title={isNew ? "New daily report" : formatDay(draft.date)}
-        description={`Prepared by ${preparedByLabel(settings.profileName, settings.profileRole)}. Foreman: ${foremanDisplay(settings.foremanName)}. Paste dictated notes, then send the words into a section yourself. Wire Chief will not move them.`}
+        description={`Prepared by ${preparedByLine(settings.profileName, settings.profileRole, settings.companyName, settings.profileEmail)}. Foreman: ${foremanDisplay(settings.foremanName)}. Paste dictated notes, then send the words into a section yourself. Wire Chief will not move them.`}
         actions={
           <>
             {project.isSample ? <SampleBadge /> : null}

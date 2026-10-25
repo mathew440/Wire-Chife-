@@ -5,7 +5,7 @@ import { useDbReady } from "@/components/db-ready";
 import { ServiceWorkerEffect } from "@/components/pwa";
 import { Toaster } from "@/components/ui/sonner";
 import { getProject, getSettings } from "@/lib/data/repo";
-import { SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
+import { SEEDED_COMPANY_NAME, SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import { useLiveQuery } from "dexie-react-hooks";
 import { CalendarRange, Camera, ClipboardList, Contact, Database, FolderOpen, HardHat, LayoutDashboard, Package, ScrollText, Users } from "lucide-react";
 import { AppLink as Link, useAppPathname } from "@/components/app-link";
@@ -43,6 +43,7 @@ function MobileBar() {
       <span className="max-w-[46%] text-right text-sm leading-tight text-muted-foreground">
         <span className="block truncate">{settings?.profileName || SEEDED_PROFILE_NAME}</span>
         <span className="block truncate text-xs">{settings?.profileRole || SEEDED_PROFILE_ROLE}</span>
+        <span className="block truncate text-xs">{settings?.companyName || SEEDED_COMPANY_NAME}</span>
       </span>
     </header>
   );
@@ -61,7 +62,7 @@ function Sidebar() {
         <Mark className="size-11" />
         <span>
           <span className="font-display block text-xl leading-none font-bold tracking-[0.14em]">WIRE CHIEF</span>
-          <span className="mt-1 block text-xs text-muted-foreground">{settings?.companyName ?? "AKA Electric"}</span>
+          <span className="mt-1 block text-xs text-muted-foreground">{settings?.companyName || SEEDED_COMPANY_NAME}</span>
         </span>
       </Link>
       <nav className="grid gap-1 px-3" aria-label="Main">
@@ -116,6 +117,7 @@ function Sidebar() {
       <p className="mt-auto px-5 py-4 text-xs text-muted-foreground">
         {settings?.profileName || SEEDED_PROFILE_NAME}
         <span className="mt-1 block">{settings?.profileRole || SEEDED_PROFILE_ROLE}</span>
+        <span className="mt-1 block">{settings?.companyName || SEEDED_COMPANY_NAME}</span>
         <span className="mt-1 block">Saved on this device. No account.</span>
       </p>
     </aside>

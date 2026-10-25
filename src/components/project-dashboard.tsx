@@ -73,6 +73,7 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
     const bytes = await buildWeeklySummaryPdf({
       company: settings!.companyName,
       preparedBy: preparedByLabel(settings!.profileName, settings!.profileRole),
+      email: settings!.profileEmail,
       foremanName: settings!.foremanName,
       projectName: project!.name,
       jobNumber: project!.jobNumber,

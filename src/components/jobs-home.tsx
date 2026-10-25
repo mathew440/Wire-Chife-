@@ -6,7 +6,8 @@ import { RemindersCard } from "@/components/reminders-card";
 import { EmptyState, PageFallback, StorageError } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { listAllEstimates, listAllReports, listAllSchedule, listAssignments, listPeople, listProjects, listTasks } from "@/lib/data/repo";
+import { getSettings, listAllEstimates, listAllReports, listAllSchedule, listAssignments, listPeople, listProjects, listTasks } from "@/lib/data/repo";
+import { SEEDED_COMPANY_NAME } from "@/lib/data/roles";
 import { projectPulse } from "@/lib/domain/dashboard";
 import { formatDay, todayISO } from "@/lib/domain/dates";
 import { weatherLabel } from "@/lib/domain/reports";
@@ -23,9 +24,10 @@ export function JobsHome() {
   const estimates = useLiveQuery(() => listAllEstimates(), []);
   const assignments = useLiveQuery(() => listAssignments({ date: today }), [today]);
   const people = useLiveQuery(() => listPeople(), []);
+  const settings = useLiveQuery(() => (status === "ready" ? getSettings() : undefined), [status]);
 
   if (status === "error") return <StorageError message={error ?? "Storage error"} />;
-  if (status !== "ready" || !projects || !tasks || !reports || !schedule || !estimates || !assignments || !people) {
+  if (status !== "ready" || !projects || !tasks || !reports || !schedule || !estimates || !assignments || !people || !settings) {
     return <PageFallback />;
   }
 
@@ -34,7 +36,7 @@ export function JobsHome() {
   return (
     <div className="grid gap-6">
       <PageIntro
-        eyebrow="AKA Electric"
+        eyebrow={settings.companyName || SEEDED_COMPANY_NAME}
         title="Jobs"
         description="Each job keeps its own reports, logs, photos, crew, open items, estimates, and files. Nothing here leaves this device."
         actions={

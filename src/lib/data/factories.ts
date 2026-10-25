@@ -1,6 +1,6 @@
 import { todayISO } from "@/lib/domain/dates";
 import { newId, nowIso } from "@/lib/data/id";
-import { SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
+import { SEEDED_COMPANY_NAME, SEEDED_PROFILE_EMAIL, SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import type {
   Assignment,
   Attachment,
@@ -196,10 +196,12 @@ export function defaultSettings(): Settings {
     profileName: SEEDED_PROFILE_NAME,
     profileRole: SEEDED_PROFILE_ROLE,
     foremanName: "",
-    companyName: "AKA Electric",
+    companyName: SEEDED_COMPANY_NAME,
+    profileEmail: SEEDED_PROFILE_EMAIL,
     samplesSeeded: false,
     seedRevision: "",
     seededRoleMigrated: false,
+    profileContactMigrated: false,
     lastNotifiedOn: "",
   };
 }

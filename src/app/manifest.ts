@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Wire Chief",
     short_name: "Wire Chief",
-    description: "Daily reports, crew, open items, and material takeoffs for AKA Electric.",
+    description: "Daily reports, crew, open items, and material takeoffs for AKA Electric Inc.",
     id: `${BASE_PATH}/`,
     start_url: `${BASE_PATH}/`,
     scope: `${BASE_PATH}/`,

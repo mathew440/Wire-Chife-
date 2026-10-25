@@ -1,3 +1,4 @@
+import { migrateProfileContact } from "@/lib/data/profile-migration";
 import { migrateSeededProjectManager } from "@/lib/data/role-migration";
 import { getSettings, saveSettings } from "@/lib/data/repo";
 
@@ -18,6 +19,7 @@ export function ensureSeeded(): Promise<void> {
   if (!seeding) {
     seeding = seedIfNeeded()
       .then(() => migrateSeededProjectManager())
+      .then(() => migrateProfileContact())
       .catch((error) => {
         seeding = null;
         throw error;
