@@ -5,17 +5,21 @@ import type {
   ChangeLogEntry,
   DailyReport,
   Estimate,
+  LaborBudget,
   LogItem,
+  MaterialOrder,
   Person,
   Project,
   ScheduleDate,
   Settings,
   Task,
+  TimeEntry,
 } from "@/lib/data/types";
 
 /**
  * Schema version 1 is the local-only book. Version 2 adds the submittal and
- * RFI log. Do not rewrite version 1. Extra fields on existing rows do not
+ * RFI log. Version 3 adds material orders, hours allowed, and time entries.
+ * Do not rewrite an older version. Extra fields on existing rows do not
  * need a version bump and are not deleted.
  */
 export class WireChiefDB extends Dexie {
@@ -28,6 +32,9 @@ export class WireChiefDB extends Dexie {
   schedule!: Table<ScheduleDate, string>;
   attachments!: Table<Attachment, string>;
   logItems!: Table<LogItem, string>;
+  orders!: Table<MaterialOrder, string>;
+  laborBudgets!: Table<LaborBudget, string>;
+  timeEntries!: Table<TimeEntry, string>;
   changelog!: Table<ChangeLogEntry, string>;
   settings!: Table<Settings, string>;
 
@@ -47,6 +54,11 @@ export class WireChiefDB extends Dexie {
     });
     this.version(2).stores({
       logItems: "id, projectId, kind, status, dueDate",
+    });
+    this.version(3).stores({
+      orders: "id, projectId, status, expectedDate",
+      laborBudgets: "id, projectId",
+      timeEntries: "id, projectId, date",
     });
   }
 }

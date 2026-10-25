@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { getProject, getSettings } from "@/lib/data/repo";
 import { SEEDED_COMPANY_NAME, SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import { useLiveQuery } from "dexie-react-hooks";
-import { CalendarRange, Camera, ClipboardList, Contact, Database, FolderOpen, HardHat, LayoutDashboard, Package, ScrollText, Users } from "lucide-react";
+import { CalendarRange, Camera, ClipboardList, Clock, Contact, Database, FolderOpen, HardHat, LayoutDashboard, Package, ScrollText, Truck, Users } from "lucide-react";
 import { AppLink as Link, useAppPathname } from "@/components/app-link";
 import { Suspense, type ReactNode } from "react";
 import { cn } from "cn";
@@ -105,6 +105,12 @@ function Sidebar() {
             <SideLink href={`/projects/${projectId}/photos`} active={pathname.includes("/photos")} icon={<Camera />}>
               Photos
             </SideLink>
+            <SideLink href={`/projects/${projectId}/orders`} active={pathname.includes("/orders")} icon={<Truck />}>
+              Orders
+            </SideLink>
+            <SideLink href={`/projects/${projectId}/hours`} active={pathname.includes("/hours")} icon={<Clock />}>
+              Hours
+            </SideLink>
             <SideLink href={`/projects/${projectId}/estimates`} active={pathname.includes("/estimates")} icon={<Package />}>
               Estimates
             </SideLink>
@@ -189,7 +195,7 @@ export function ProjectTabs({
   current,
 }: {
   projectId: string;
-  current: "dashboard" | "reports" | "tasks" | "submittals" | "rfis" | "lookahead" | "photos" | "estimates" | "files";
+  current: "dashboard" | "reports" | "tasks" | "submittals" | "rfis" | "lookahead" | "photos" | "orders" | "hours" | "estimates" | "files";
 }) {
   const tabs = [
     ["dashboard", "Dashboard", `/projects/${projectId}`],
@@ -199,6 +205,8 @@ export function ProjectTabs({
     ["rfis", "RFIs", `/projects/${projectId}/rfis`],
     ["lookahead", "Look-ahead", `/projects/${projectId}/lookahead`],
     ["photos", "Photos", `/projects/${projectId}/photos`],
+    ["orders", "Orders", `/projects/${projectId}/orders`],
+    ["hours", "Hours", `/projects/${projectId}/hours`],
     ["estimates", "Estimates", `/projects/${projectId}/estimates`],
     ["files", "Files", `/projects/${projectId}/files`],
   ] as const;

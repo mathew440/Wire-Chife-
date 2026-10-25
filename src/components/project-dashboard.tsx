@@ -12,18 +12,23 @@ import {
   listAssignments,
   listAttachments,
   listEstimates,
+  listLaborBudgets,
   listLogItems,
+  listOrders,
   listPeople,
   listReports,
   listSchedule,
   listTasks,
+  listTimeEntries,
   saveSchedule,
 } from "@/lib/data/repo";
 import { getProject } from "@/lib/data/repo";
 import { preparedByLabel } from "@/lib/data/roles";
 import { isOverdueTask, projectPulse } from "@/lib/domain/dashboard";
 import { addDays, duePhrase, formatDay, todayISO } from "@/lib/domain/dates";
+import { summarizeHours } from "@/lib/domain/hours";
 import { isClosedLog } from "@/lib/domain/logs";
+import { isLateOrder } from "@/lib/domain/orders";
 import { weatherLabel } from "@/lib/domain/reports";
 import { downloadBytes } from "@/lib/pdf/download";
 import { buildWeeklySummaryPdf, weeklyPdfFileName } from "@/lib/pdf/weekly-summary-pdf";
@@ -49,10 +54,28 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
   const people = useLiveQuery(() => listPeople(), []);
   const files = useLiveQuery(() => listAttachments(id), [id]);
   const logItems = useLiveQuery(() => listLogItems(id), [id]);
+  const orders = useLiveQuery(() => listOrders(id), [id]);
+  const laborBudgets = useLiveQuery(() => listLaborBudgets(id), [id]);
+  const timeEntries = useLiveQuery(() => listTimeEntries(id), [id]);
   const settings = useLiveQuery(() => (status === "ready" ? getSettings() : undefined), [status]);
 
   if (status === "error") return <StorageError message={error ?? "Storage error"} />;
-  if (status !== "ready" || project === undefined || !tasks || !reports || !schedule || !estimates || !assignments || !people || !files || !logItems || !settings) {
+  if (
+    status !== "ready" ||
+    project === undefined ||
+    !tasks ||
+    !reports ||
+    !schedule ||
+    !estimates ||
+    !assignments ||
+    !people ||
+    !files ||
+    !logItems ||
+    !orders ||
+    !laborBudgets ||
+    !timeEntries ||
+    !settings
+  ) {
     return <PageFallback />;
   }
   if (project === null) {
@@ -70,6 +93,7 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
 
   async function exportWeek() {
     const weekStart = addDays(today, -6);
+    const hours = summarizeHours({ budgets: laborBudgets!, entries: timeEntries!, reports: reports! });
     const bytes = await buildWeeklySummaryPdf({
       company: settings!.companyName,
       preparedBy: preparedByLabel(settings!.profileName, settings!.profileRole),
@@ -95,6 +119,23 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
         })),
       openItems: tasks!.filter((task) => task.status !== "done"),
       openLogs: logItems!.filter((item) => !isClosedLog(item.status)),
+      orders: orders!.map((order) => ({
+        description: order.description,
+        vendor: order.vendor,
+        quantity: order.quantity,
+        status: order.status,
+        expectedDate: order.expectedDate,
+        late: isLateOrder(order, today),
+      })),
+      hours: {
+        allowed: hours.allowed,
+        used: hours.used,
+        remaining: hours.remaining,
+        percent: hours.percent,
+        burnPerWeek: hours.burnPerWeek,
+        fromTimeEntries: hours.fromTimeEntries,
+        fromReports: hours.fromReports,
+      },
     });
     downloadBytes(bytes, weeklyPdfFileName(project!.name, today));
     toast.success("Weekly PDF downloaded");

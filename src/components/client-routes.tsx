@@ -7,7 +7,9 @@ import { EstimateEditor, EstimateList } from "@/components/estimate-screens";
 import { FileList, FileViewer } from "@/components/file-screens";
 import { ContactsDirectory } from "@/components/contacts-directory";
 import { JobsHome } from "@/components/jobs-home";
+import { HoursScreen } from "@/components/hours-screen";
 import { LookaheadScreen } from "@/components/lookahead-screen";
+import { OrdersScreen } from "@/components/orders-screen";
 import { LogEditor, LogList } from "@/components/log-screens";
 import { PhotoLog } from "@/components/photo-screen";
 import { EditProject, ProjectForm } from "@/components/project-form";
@@ -82,6 +84,10 @@ function RouteView({ route }: { route: AppRoute }) {
       return <LookaheadScreen params={projectParams} />;
     case "photos":
       return <PhotoLog params={projectParams} />;
+    case "orders":
+      return <OrdersScreen params={projectParams} />;
+    case "hours":
+      return <HoursScreen params={projectParams} />;
     default:
       return (
         <EmptyState
