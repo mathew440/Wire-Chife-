@@ -205,6 +205,7 @@ function whereAttached(parent: AttachmentParent): string {
   if (parent === "report") return "On a daily report";
   if (parent === "task") return "On an open item";
   if (parent === "estimate") return "On an estimate";
+  if (parent === "photo") return "Photo log";
   return "On the job";
 }
 

@@ -1,4 +1,4 @@
-import type { Confirmation } from "@/lib/data/types";
+import type { Confirmation, ScheduleConfirmation } from "@/lib/data/types";
 
 export function todayISO(now = new Date()): string {
   const y = now.getFullYear();
@@ -47,6 +47,12 @@ export function isConfirmation(value: string): value is Confirmation {
   return value === "tentative" || value === "confirmed";
 }
 
-export function confirmationLabel(value: Confirmation): "TENTATIVE" | "CONFIRMED" {
-  return value === "confirmed" ? "CONFIRMED" : "TENTATIVE";
+export function isScheduleConfirmation(value: string): value is ScheduleConfirmation {
+  return value === "tentative" || value === "confirmed" || value === "needs-verification";
+}
+
+export function confirmationLabel(value: ScheduleConfirmation): "TENTATIVE" | "CONFIRMED" | "NEEDS VERIFICATION" {
+  if (value === "confirmed") return "CONFIRMED";
+  if (value === "needs-verification") return "NEEDS VERIFICATION";
+  return "TENTATIVE";
 }

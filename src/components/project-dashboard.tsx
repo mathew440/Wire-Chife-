@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { blankSchedule } from "@/lib/data/factories";
 import {
+  getSettings,
   listAssignments,
   listAttachments,
   listEstimates,
+  listLogItems,
   listPeople,
   listReports,
   listSchedule,
@@ -18,9 +20,13 @@ import {
   saveSchedule,
 } from "@/lib/data/repo";
 import { getProject } from "@/lib/data/repo";
+import { preparedByLabel } from "@/lib/data/roles";
 import { isOverdueTask, projectPulse } from "@/lib/domain/dashboard";
-import { duePhrase, formatDay, todayISO } from "@/lib/domain/dates";
+import { addDays, duePhrase, formatDay, todayISO } from "@/lib/domain/dates";
+import { isClosedLog } from "@/lib/domain/logs";
 import { weatherLabel } from "@/lib/domain/reports";
+import { downloadBytes } from "@/lib/pdf/download";
+import { buildWeeklySummaryPdf, weeklyPdfFileName } from "@/lib/pdf/weekly-summary-pdf";
 import type { Confirmation, ScheduleKind } from "@/lib/data/types";
 import { useLiveQuery } from "dexie-react-hooks";
 import { AppLink as Link } from "@/components/app-link";
@@ -42,9 +48,11 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
   const assignments = useLiveQuery(() => listAssignments({ projectId: id, date: today }), [id, today]);
   const people = useLiveQuery(() => listPeople(), []);
   const files = useLiveQuery(() => listAttachments(id), [id]);
+  const logItems = useLiveQuery(() => listLogItems(id), [id]);
+  const settings = useLiveQuery(() => (status === "ready" ? getSettings() : undefined), [status]);
 
   if (status === "error") return <StorageError message={error ?? "Storage error"} />;
-  if (status !== "ready" || project === undefined || !tasks || !reports || !schedule || !estimates || !assignments || !people || !files) {
+  if (status !== "ready" || project === undefined || !tasks || !reports || !schedule || !estimates || !assignments || !people || !files || !logItems || !settings) {
     return <PageFallback />;
   }
   if (project === null) {
@@ -60,6 +68,37 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
   const pulse = projectPulse({ today, tasks, reports, schedule, estimates });
   const weather = pulse.latest ? weatherLabel(pulse.latest) : null;
 
+  async function exportWeek() {
+    const weekStart = addDays(today, -6);
+    const bytes = await buildWeeklySummaryPdf({
+      company: settings!.companyName,
+      preparedBy: preparedByLabel(settings!.profileName, settings!.profileRole),
+      foremanName: settings!.foremanName,
+      projectName: project!.name,
+      jobNumber: project!.jobNumber,
+      isSample: project!.isSample,
+      weekEnding: today,
+      weekStart,
+      reports: reports!
+        .filter((report) => report.date >= weekStart && report.date <= today)
+        .map((report) => ({
+          date: report.date,
+          dateConfirmation: report.dateConfirmation,
+          weatherText: report.weatherText,
+          weatherEntered: report.weatherEntered,
+          completed: report.completed,
+          ongoing: report.ongoing,
+          planned: report.planned,
+          needsVerification: report.needsVerification,
+          blockers: report.blockers,
+        })),
+      openItems: tasks!.filter((task) => task.status !== "done"),
+      openLogs: logItems!.filter((item) => !isClosedLog(item.status)),
+    });
+    downloadBytes(bytes, weeklyPdfFileName(project!.name, today));
+    toast.success("Weekly PDF downloaded");
+  }
+
   return (
     <div className="grid gap-5">
       <ProjectTabs projectId={id} current="dashboard" />
@@ -70,6 +109,9 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
         actions={
           <>
             <Button nativeButton={false} render={<Link href={`/projects/${id}/reports/new`} />}>New report</Button>
+            <Button type="button" variant="outline" onClick={() => void exportWeek()}>
+              Weekly PDF
+            </Button>
             <Button variant="outline" nativeButton={false} render={<Link href={`/projects/${id}/edit`} />}>
               Edit job
             </Button>
@@ -92,7 +134,7 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
         <Metric
           label="Next date"
           value={pulse.next ? formatDay(pulse.next.date, today) : "None"}
-          href={`/projects/${id}`}
+          href={`/projects/${id}/lookahead`}
         />
       </div>
 
@@ -210,14 +252,22 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
               {project.contacts.map((contact) => (
                 <div key={contact.id}>
                   <p className="font-semibold">{contact.name}</p>
-                  <p className="text-sm text-muted-foreground">{contact.role}</p>
+                  <p className="text-sm text-muted-foreground">{[contact.company, contact.role].filter(Boolean).join(" · ")}</p>
                   {contact.phone ? (
-                    <a className="text-sm font-semibold text-teal" href={`tel:${contact.phone}`}>
+                    <a className="block text-sm font-semibold text-teal" href={`tel:${contact.phone}`}>
                       {contact.phone}
+                    </a>
+                  ) : null}
+                  {contact.email ? (
+                    <a className="block text-sm font-semibold text-teal" href={`mailto:${contact.email}`}>
+                      {contact.email}
                     </a>
                   ) : null}
                 </div>
               ))}
+              <Button variant="outline" nativeButton={false} render={<Link href="/contacts" />}>
+                All contacts
+              </Button>
               <p className="text-sm text-muted-foreground">{files.length} file{files.length === 1 ? "" : "s"} on this job.</p>
               <Button variant="outline" nativeButton={false} render={<Link href={`/projects/${id}/files`} />}>
                 Files

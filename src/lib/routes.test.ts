@@ -18,6 +18,15 @@ describe("Pages base path", () => {
       reportId: "new",
     });
     expect(matchRoute("/projects/new")).toEqual({ name: "project-new" });
+    expect(matchRoute("/Wire-Chife-/contacts/")).toEqual({ name: "contacts" });
+    expect(matchRoute("/projects/sample-job-a/submittals/new")).toEqual({
+      name: "submittal",
+      id: "sample-job-a",
+      itemId: "new",
+    });
+    expect(matchRoute("/projects/sample-job-a/rfis")).toEqual({ name: "rfis", id: "sample-job-a" });
+    expect(matchRoute("/projects/sample-job-a/lookahead")).toEqual({ name: "lookahead", id: "sample-job-a" });
+    expect(matchRoute("/projects/sample-job-a/photos")).toEqual({ name: "photos", id: "sample-job-a" });
     expect(matchRoute("/Wire-Chife-/nope")).toEqual({ name: "missing" });
   });
 });

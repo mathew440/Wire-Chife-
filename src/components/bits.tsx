@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { confirmationLabel } from "@/lib/domain/dates";
-import type { Confirmation, ProjectStatus, TaskStatus } from "@/lib/data/types";
+import type { Confirmation, ProjectStatus, ScheduleConfirmation, TaskStatus } from "@/lib/data/types";
 import { cn } from "cn";
 import type { ComponentProps, ReactNode } from "react";
 
@@ -28,7 +28,7 @@ export function SampleBadge() {
   );
 }
 
-export function DateFlag({ value }: { value: Confirmation }) {
+export function DateFlag({ value }: { value: ScheduleConfirmation }) {
   const confirmed = value === "confirmed";
   return (
     <span

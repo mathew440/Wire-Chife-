@@ -5,15 +5,18 @@ import type {
   Attachment,
   AttachmentParent,
   ChangeLogEntry,
+  Contact,
   DailyReport,
   EntityMeta,
   Estimate,
+  LogItem,
   Person,
   Project,
   ScheduleDate,
   Settings,
   Task,
 } from "@/lib/data/types";
+import { isScheduleConfirmation } from "@/lib/domain/dates";
 import { normalizeWeather } from "@/lib/domain/reports";
 import type { Table } from "dexie";
 
@@ -51,19 +54,27 @@ async function remove<T extends EntityMeta>(table: Table<T, string>, entity: str
   await put(table, entity, { ...existing, deletedAt: nowIso() });
 }
 
+function normalizeContact(contact: Contact): Contact {
+  return { ...contact, email: contact.email ?? "", company: contact.company ?? "" };
+}
+
+function normalizeProject(project: Project): Project {
+  return { ...project, contacts: (project.contacts ?? []).map(normalizeContact) };
+}
+
 export async function listProjects(): Promise<Project[]> {
-  const rows = live(await db.projects.toArray());
+  const rows = live(await db.projects.toArray()).map(normalizeProject);
   return rows.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getProject(id: string): Promise<Project | undefined> {
   const row = await db.projects.get(id);
   if (!row || row.deletedAt) return undefined;
-  return row;
+  return normalizeProject(row);
 }
 
 export async function saveProject(project: Project): Promise<Project> {
-  return put(db.projects, "projects", project);
+  return put(db.projects, "projects", normalizeProject(project));
 }
 
 export async function listPeople(): Promise<Person[]> {
@@ -197,35 +208,61 @@ export async function deleteEstimate(id: string): Promise<void> {
   await remove(db.estimates, "estimates", id);
 }
 
+function normalizeSchedule(item: ScheduleDate): ScheduleDate {
+  const date = item.date;
+  const storedEnd = (item as ScheduleDate & { endDate?: string }).endDate;
+  const endDate = storedEnd && storedEnd >= date ? storedEnd : date;
+  const confirmation = isScheduleConfirmation(item.confirmation) ? item.confirmation : "tentative";
+  return {
+    ...item,
+    date,
+    endDate,
+    confirmation,
+    source: item.source ?? "",
+    asOf: item.asOf ?? "",
+  };
+}
+
 export async function listAllSchedule(): Promise<ScheduleDate[]> {
-  return live(await db.schedule.toArray());
+  return live(await db.schedule.toArray()).map(normalizeSchedule);
 }
 
 export async function listSchedule(projectId: string): Promise<ScheduleDate[]> {
-  const rows = live(await db.schedule.where("projectId").equals(projectId).toArray());
-  return rows.sort((a, b) => a.date.localeCompare(b.date));
+  const rows = live(await db.schedule.where("projectId").equals(projectId).toArray()).map(normalizeSchedule);
+  return rows.sort((a, b) => a.date.localeCompare(b.date) || a.label.localeCompare(b.label));
 }
 
 export async function saveSchedule(item: ScheduleDate): Promise<ScheduleDate> {
   const project = await getProject(item.projectId);
   if (!project) throw new Error("That job is not on this device.");
   if (!item.label.trim() || !item.date) throw new Error("A date needs a label and a day.");
-  return put(db.schedule, "schedule", { ...item, label: item.label.trim() });
+  const endDate = item.endDate || item.date;
+  if (endDate < item.date) throw new Error("The end date cannot be before the start date.");
+  return put(db.schedule, "schedule", normalizeSchedule({ ...item, label: item.label.trim(), endDate }));
 }
 
 export async function deleteSchedule(id: string): Promise<void> {
   await remove(db.schedule, "schedule", id);
 }
 
+function normalizeAttachment(row: Attachment): Attachment {
+  return {
+    ...row,
+    area: row.area ?? "",
+    caption: row.caption ?? "",
+    takenDate: row.takenDate ?? null,
+  };
+}
+
 export async function listAttachments(projectId: string): Promise<Attachment[]> {
-  const rows = live(await db.attachments.where("projectId").equals(projectId).toArray());
+  const rows = live(await db.attachments.where("projectId").equals(projectId).toArray()).map(normalizeAttachment);
   return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function getAttachment(id: string): Promise<Attachment | undefined> {
   const row = await db.attachments.get(id);
   if (!row || row.deletedAt) return undefined;
-  return row;
+  return normalizeAttachment(row);
 }
 
 export async function saveAttachment(attachment: Attachment): Promise<Attachment> {
@@ -264,6 +301,14 @@ export async function assertAttachmentParent(
     }
     return;
   }
+  if (parentType === "photo") {
+    if (parentId !== projectId) {
+      throw new Error("A photo for one job cannot be filed on another.");
+    }
+    const project = await getProject(projectId);
+    if (!project) throw new Error("That job is not on this device.");
+    return;
+  }
   const estimate = await getEstimate(parentId);
   if (!estimate || estimate.projectId !== projectId) {
     throw new Error("That estimate is not on this job.");
@@ -279,13 +324,61 @@ export async function deleteProject(id: string): Promise<void> {
   const schedule = await db.schedule.where("projectId").equals(id).toArray();
   const assignments = live(await db.assignments.toArray()).filter((row) => row.projectId === id);
   const attachments = await db.attachments.where("projectId").equals(id).toArray();
+  const logItems = live(await db.logItems.toArray()).filter((row) => row.projectId === id);
   for (const row of reports) if (!row.deletedAt) await remove(db.reports, "reports", row.id);
   for (const row of tasks) await remove(db.tasks, "tasks", row.id);
   for (const row of estimates) if (!row.deletedAt) await remove(db.estimates, "estimates", row.id);
   for (const row of schedule) if (!row.deletedAt) await remove(db.schedule, "schedule", row.id);
   for (const row of assignments) await remove(db.assignments, "assignments", row.id);
   for (const row of attachments) if (!row.deletedAt) await remove(db.attachments, "attachments", row.id);
+  for (const row of logItems) await remove(db.logItems, "logItems", row.id);
   await remove(db.projects, "projects", id);
+}
+
+export async function listAllLogItems(): Promise<LogItem[]> {
+  return live(await db.logItems.toArray());
+}
+
+export async function listLogItems(projectId: string, kind?: LogItem["kind"]): Promise<LogItem[]> {
+  const rows = live(await db.logItems.where("projectId").equals(projectId).toArray()).filter((row) =>
+    kind ? row.kind === kind : true,
+  );
+  return rows.sort((a, b) => (a.number || a.description).localeCompare(b.number || b.description));
+}
+
+export async function getLogItem(id: string): Promise<LogItem | undefined> {
+  const row = await db.logItems.get(id);
+  if (!row || row.deletedAt) return undefined;
+  return row;
+}
+
+export async function saveLogItem(item: LogItem): Promise<LogItem> {
+  const project = await getProject(item.projectId);
+  if (!project) throw new Error("That job is not on this device.");
+  const number = item.number.trim();
+  const description = item.description.trim();
+  if (!number && !description) {
+    throw new Error(item.kind === "rfi" ? "An RFI needs a number or a description." : "A submittal needs a number or a description.");
+  }
+  const contactId = item.contactId || null;
+  if (contactId && !project.contacts.some((contact) => contact.id === contactId)) {
+    throw new Error("That contact is not on this job.");
+  }
+  return put(db.logItems, "logItems", {
+    ...item,
+    number,
+    description,
+    specSection: item.specSection.trim(),
+    ballInCourt: item.ballInCourt.trim(),
+    notes: item.notes.trim(),
+    sentDate: item.sentDate || null,
+    dueDate: item.dueDate || null,
+    contactId,
+  });
+}
+
+export async function deleteLogItem(id: string): Promise<void> {
+  await remove(db.logItems, "logItems", id);
 }
 
 export async function getSettings(): Promise<Settings> {
@@ -300,17 +393,19 @@ function normalizeSettings(settings: Settings): Settings {
     profileRole?: string;
     foremanName?: string;
     seededRoleMigrated?: boolean;
+    lastNotifiedOn?: string;
   };
   return {
     ...settings,
     profileRole: stored.profileRole ?? "",
     foremanName: stored.foremanName ?? "",
     seededRoleMigrated: stored.seededRoleMigrated ?? false,
+    lastNotifiedOn: stored.lastNotifiedOn ?? "",
   };
 }
 
 export async function saveSettings(settings: Settings): Promise<Settings> {
-  return put(db.settings, "settings", { ...settings, id: "local" });
+  return put(db.settings, "settings", { ...normalizeSettings(settings), id: "local" });
 }
 
 export async function listChangelog(): Promise<ChangeLogEntry[]> {

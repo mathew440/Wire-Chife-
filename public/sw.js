@@ -1,9 +1,11 @@
-const CACHE = "wire-chief-shell-v4";
+const CACHE = "wire-chief-shell-v5";
 const BASE = "/Wire-Chife-";
 const SHELL = [
   `${BASE}/`,
   `${BASE}/index.html`,
   `${BASE}/404.html`,
+  `${BASE}/contacts/`,
+  `${BASE}/contacts/index.html`,
   `${BASE}/manifest.webmanifest`,
   `${BASE}/icon-192.png`,
   `${BASE}/icon-512.png`,

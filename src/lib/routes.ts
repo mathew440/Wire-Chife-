@@ -15,6 +15,13 @@ export type AppRoute =
   | { name: "estimate"; id: string; estimateId: string }
   | { name: "files"; id: string }
   | { name: "file"; id: string; fileId: string }
+  | { name: "submittals"; id: string }
+  | { name: "submittal"; id: string; itemId: string }
+  | { name: "rfis"; id: string }
+  | { name: "rfi"; id: string; itemId: string }
+  | { name: "lookahead"; id: string }
+  | { name: "photos"; id: string }
+  | { name: "contacts" }
   | { name: "missing" };
 
 function decodePart(value: string): string {
@@ -31,6 +38,7 @@ export function matchRoute(pathname: string): AppRoute {
   if (parts.length === 0) return { name: "home" };
   if (parts.length === 1 && parts[0] === "crew") return { name: "crew" };
   if (parts.length === 1 && parts[0] === "data") return { name: "data" };
+  if (parts.length === 1 && parts[0] === "contacts") return { name: "contacts" };
   if (parts[0] !== "projects") return { name: "missing" };
   if (parts.length === 2 && parts[1] === "new") return { name: "project-new" };
   if (parts.length === 2) return { name: "project", id: parts[1] };
@@ -46,5 +54,11 @@ export function matchRoute(pathname: string): AppRoute {
   if (section === "estimates" && parts.length === 4) return { name: "estimate", id, estimateId: parts[3] };
   if (section === "files" && parts.length === 3) return { name: "files", id };
   if (section === "files" && parts.length === 4) return { name: "file", id, fileId: parts[3] };
+  if (section === "submittals" && parts.length === 3) return { name: "submittals", id };
+  if (section === "submittals" && parts.length === 4) return { name: "submittal", id, itemId: parts[3] };
+  if (section === "rfis" && parts.length === 3) return { name: "rfis", id };
+  if (section === "rfis" && parts.length === 4) return { name: "rfi", id, itemId: parts[3] };
+  if (section === "lookahead" && parts.length === 3) return { name: "lookahead", id };
+  if (section === "photos" && parts.length === 3) return { name: "photos", id };
   return { name: "missing" };
 }

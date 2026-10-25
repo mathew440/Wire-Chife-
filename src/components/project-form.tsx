@@ -55,7 +55,9 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
       const saved = await saveProject({
         ...draft,
         name: draft.name.trim(),
-        contacts: draft.contacts.filter((contact) => contact.name.trim() || contact.role.trim() || contact.phone.trim()),
+        contacts: draft.contacts.filter(
+          (contact) => contact.name.trim() || contact.role.trim() || contact.phone.trim() || contact.email.trim() || contact.company.trim(),
+        ),
       });
       toast.success("Job saved on this device");
       router.push(`/projects/${saved.id}`);
@@ -127,6 +129,17 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
                   }}
                 />
               </Field>
+              <Field label="Company">
+                <TextField
+                  value={contact.company}
+                  onChange={(event) => {
+                    const contacts = draft.contacts.slice();
+                    contacts[index] = { ...contact, company: event.target.value };
+                    update({ contacts });
+                  }}
+                  placeholder="Company name"
+                />
+              </Field>
               <Field label="Role">
                 <TextField
                   value={contact.role}
@@ -189,7 +202,7 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
         title="Delete this job?"
-        body="Reports, open items, estimates, dates, crew assignments, and files for this job come off the device. Other jobs stay."
+        body="Reports, open items, submittals, RFIs, photos, estimates, dates, crew assignments, and files for this job come off the device. Other jobs stay."
         confirmLabel="Delete job"
         onConfirm={() => {
           if (!projectId) return;

@@ -5,6 +5,7 @@ import type {
   ChangeLogEntry,
   DailyReport,
   Estimate,
+  LogItem,
   Person,
   Project,
   ScheduleDate,
@@ -13,8 +14,9 @@ import type {
 } from "@/lib/data/types";
 
 /**
- * Schema version 1 is the local-only book. Add a new version() block when
- * cloud sync needs columns. Do not rewrite this one under existing devices.
+ * Schema version 1 is the local-only book. Version 2 adds the submittal and
+ * RFI log. Do not rewrite version 1. Extra fields on existing rows do not
+ * need a version bump and are not deleted.
  */
 export class WireChiefDB extends Dexie {
   projects!: Table<Project, string>;
@@ -25,6 +27,7 @@ export class WireChiefDB extends Dexie {
   estimates!: Table<Estimate, string>;
   schedule!: Table<ScheduleDate, string>;
   attachments!: Table<Attachment, string>;
+  logItems!: Table<LogItem, string>;
   changelog!: Table<ChangeLogEntry, string>;
   settings!: Table<Settings, string>;
 
@@ -41,6 +44,9 @@ export class WireChiefDB extends Dexie {
       attachments: "id, projectId, parentType, parentId",
       changelog: "id, entity, entityId, at",
       settings: "id",
+    });
+    this.version(2).stores({
+      logItems: "id, projectId, kind, status, dueDate",
     });
   }
 }

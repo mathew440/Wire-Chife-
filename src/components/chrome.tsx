@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { getProject, getSettings } from "@/lib/data/repo";
 import { SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import { useLiveQuery } from "dexie-react-hooks";
-import { ClipboardList, Database, FolderOpen, HardHat, LayoutDashboard, Package, Users } from "lucide-react";
+import { CalendarRange, Camera, ClipboardList, Contact, Database, FolderOpen, HardHat, LayoutDashboard, Package, ScrollText, Users } from "lucide-react";
 import { AppLink as Link, useAppPathname } from "@/components/app-link";
 import { Suspense, type ReactNode } from "react";
 import { cn } from "cn";
@@ -74,6 +74,9 @@ function Sidebar() {
         <SideLink href="/data" active={pathname.startsWith("/data")} icon={<Database />}>
           Data
         </SideLink>
+        <SideLink href="/contacts" active={pathname.startsWith("/contacts")} icon={<Contact />}>
+          Contacts
+        </SideLink>
       </nav>
       {projectId && project ? (
         <div className="mt-6 px-3">
@@ -88,6 +91,18 @@ function Sidebar() {
             </SideLink>
             <SideLink href={`/projects/${projectId}/tasks`} active={pathname.includes("/tasks")} icon={<ClipboardList />}>
               Open items
+            </SideLink>
+            <SideLink href={`/projects/${projectId}/submittals`} active={pathname.includes("/submittals")} icon={<ScrollText />}>
+              Submittals
+            </SideLink>
+            <SideLink href={`/projects/${projectId}/rfis`} active={pathname.includes("/rfis")} icon={<ScrollText />}>
+              RFIs
+            </SideLink>
+            <SideLink href={`/projects/${projectId}/lookahead`} active={pathname.includes("/lookahead")} icon={<CalendarRange />}>
+              Look-ahead
+            </SideLink>
+            <SideLink href={`/projects/${projectId}/photos`} active={pathname.includes("/photos")} icon={<Camera />}>
+              Photos
             </SideLink>
             <SideLink href={`/projects/${projectId}/estimates`} active={pathname.includes("/estimates")} icon={<Package />}>
               Estimates
@@ -139,13 +154,14 @@ function BottomNav() {
     { href: "/", label: "Jobs", icon: <HardHat />, active: pathname === "/" || pathname.startsWith("/projects") },
     { href: "/crew", label: "Crew", icon: <Users />, active: pathname.startsWith("/crew") },
     { href: "/data", label: "Data", icon: <Database />, active: pathname.startsWith("/data") },
+    { href: "/contacts", label: "Contacts", icon: <Contact />, active: pathname.startsWith("/contacts") },
   ];
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-sidebar/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
       aria-label="Main"
     >
-      <ul className="grid grid-cols-3">
+      <ul className="grid grid-cols-4">
         {items.map((item) => (
           <li key={item.href}>
             <Link
@@ -166,11 +182,21 @@ function BottomNav() {
   );
 }
 
-export function ProjectTabs({ projectId, current }: { projectId: string; current: "dashboard" | "reports" | "tasks" | "estimates" | "files" }) {
+export function ProjectTabs({
+  projectId,
+  current,
+}: {
+  projectId: string;
+  current: "dashboard" | "reports" | "tasks" | "submittals" | "rfis" | "lookahead" | "photos" | "estimates" | "files";
+}) {
   const tabs = [
     ["dashboard", "Dashboard", `/projects/${projectId}`],
     ["reports", "Reports", `/projects/${projectId}/reports`],
     ["tasks", "Open items", `/projects/${projectId}/tasks`],
+    ["submittals", "Submittals", `/projects/${projectId}/submittals`],
+    ["rfis", "RFIs", `/projects/${projectId}/rfis`],
+    ["lookahead", "Look-ahead", `/projects/${projectId}/lookahead`],
+    ["photos", "Photos", `/projects/${projectId}/photos`],
     ["estimates", "Estimates", `/projects/${projectId}/estimates`],
     ["files", "Files", `/projects/${projectId}/files`],
   ] as const;

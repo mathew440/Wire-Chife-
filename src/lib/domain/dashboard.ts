@@ -1,5 +1,6 @@
-import type { Confirmation, Estimate, ScheduleDate, Task } from "@/lib/data/types";
+import type { Confirmation, Estimate, ScheduleConfirmation, ScheduleDate, Task } from "@/lib/data/types";
 import { dayOffset } from "@/lib/domain/dates";
+import { scheduleSpan } from "@/lib/domain/lookahead";
 
 export interface ReportSummary {
   id: string;
@@ -16,7 +17,7 @@ export interface UpcomingEntry {
   id: string;
   projectId: string;
   date: string;
-  confirmation: Confirmation;
+  confirmation: ScheduleConfirmation;
   label: string;
   kind: string;
   overdue: boolean;
@@ -51,15 +52,16 @@ export function buildUpcoming(input: {
 
   for (const item of input.schedule) {
     if (item.deletedAt) continue;
+    const span = scheduleSpan(item);
     entries.push({
       id: item.id,
       projectId: item.projectId,
-      date: item.date,
+      date: span.start,
       confirmation: item.confirmation,
-      label: item.label,
+      label: span.end !== span.start ? `${item.label} (${span.start}–${span.end})` : item.label,
       kind: item.kind,
-      overdue: item.date < input.today,
-      href: `/projects/${item.projectId}`,
+      overdue: span.end < input.today,
+      href: `/projects/${item.projectId}/lookahead`,
     });
   }
 

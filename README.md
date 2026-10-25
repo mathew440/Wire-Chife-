@@ -32,9 +32,11 @@ On iPhone, open that address in Safari, then Share → Add to Home Screen. Open 
 
 ## What's in the book
 
-The first open starts empty. There are no built-in jobs. Add a job, or import a backup JSON file from Data. That file is the way to move the book to another device until cloud sync exists. A backup from an earlier version still loads, including one whose settings already mark a starter book as loaded.
+The first open starts empty. There are no built-in jobs. Add a job, or import a backup JSON file from Data. That file is the way to move the book to another device until cloud sync exists. A backup from an earlier version still loads, including one whose settings already mark a starter book as loaded. Data has two imports: add one job from a file (other jobs stay) or replace every job (this wipes the phone, and the screen asks you to export first).
 
-Daily reports keep Completed, Ongoing, Planned, and Needs verification as separate notes. Nothing promotes a note from one to another. Weather stays **unverified** until you type it. Every date can be marked tentative or confirmed. Estimates are quantities and crew size × duration, with no price fields, and they export as their own PDF.
+Each job has a submittal log, an RFI log, a 2-week and 6-week look-ahead with start and end dates, a photo log by area, and a weekly PDF. Photos are reduced in size on the device and travel with the backup. Contacts have a company and an email, and the Contacts tab lists them across jobs. The job list shows what is overdue or due within 7 days. The browser can show one notification a day when you allow it.
+
+Daily reports keep Completed, Ongoing, Planned, and Needs verification as separate notes. Nothing promotes a note from one to another. Weather stays **unverified** until you type it. Schedule dates can be tentative, confirmed, or needs verification. Estimates are quantities and crew size × duration, with no price fields, and they export as their own PDF. The weekly PDF uses the name and role saved on this device. The default profile is Mat Hiner, Project Manager.
 
 ## How a backend would plug in later
 
