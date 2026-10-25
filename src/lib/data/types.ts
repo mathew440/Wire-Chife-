@@ -181,6 +181,37 @@ export interface LogItem extends EntityMeta {
   notes: string;
 }
 
+export type OrderStatus = "needed" | "ordered" | "shipped" | "delivered" | "backordered";
+
+export interface MaterialOrder extends EntityMeta {
+  projectId: string;
+  description: string;
+  vendor: string;
+  poNumber: string;
+  /** What they typed, such as "12" or "12 boxes". */
+  quantity: string;
+  orderedDate: string | null;
+  expectedDate: string | null;
+  status: OrderStatus;
+  deliveredDate: string | null;
+  notes: string;
+}
+
+/** One slice of the hours allowed on a job. A job can have a single Total row. */
+export interface LaborBudget extends EntityMeta {
+  projectId: string;
+  label: string;
+  allowedHours: number;
+}
+
+export interface TimeEntry extends EntityMeta {
+  projectId: string;
+  date: string;
+  hours: number;
+  workerName: string;
+  note: string;
+}
+
 export type AttachmentParent = "project" | "report" | "task" | "estimate" | "photo";
 
 export interface Attachment extends EntityMeta {

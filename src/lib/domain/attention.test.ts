@@ -1,4 +1,4 @@
-import { blankLogItem, blankProject, blankTask } from "@/lib/data/factories";
+import { blankLogItem, blankOrder, blankProject, blankTask } from "@/lib/data/factories";
 import { buildAttention } from "@/lib/domain/attention";
 import { isDueSoonLog, isOverdueLog } from "@/lib/domain/logs";
 import { describe, expect, it } from "vitest";
@@ -44,6 +44,7 @@ describe("due and overdue attention", () => {
           ballInCourt: "GC",
         }),
       ],
+      orders: [],
       tasks: [
         blankTask("job-a", { id: "t1", title: "Call inspector", dueDate: "2026-10-22", status: "open", owner: "" }),
         blankTask("job-b", { id: "t2", title: "Done item", dueDate: "2026-10-01", status: "done", owner: "GC", evidence: "note" }),
@@ -59,5 +60,35 @@ describe("due and overdue attention", () => {
     expect(isOverdueLog(blankLogItem("job-a", "submittal", { status: "approved-as-noted", dueDate: "2026-01-01" }), today)).toBe(false);
     expect(isDueSoonLog(blankLogItem("job-a", "rfi", { status: "rejected", dueDate: "2026-10-31" }), today)).toBe(true);
     expect(isDueSoonLog(blankLogItem("job-a", "rfi", { status: "rejected", dueDate: "2026-12-01" }), today)).toBe(false);
+  });
+
+  it("lists a late order under the vendor and skips a delivered one", () => {
+    const groups = buildAttention({
+      today,
+      projects: [jobA],
+      logItems: [],
+      tasks: [],
+      orders: [
+        blankOrder("job-a", {
+          id: "o1",
+          description: "Panel",
+          vendor: "Sample Supply",
+          expectedDate: "2026-10-20",
+          status: "shipped",
+        }),
+        blankOrder("job-a", {
+          id: "o2",
+          description: "Already here",
+          vendor: "Sample Supply",
+          expectedDate: "2026-10-01",
+          status: "delivered",
+        }),
+      ],
+    });
+    expect(groups.map((group) => group.owner)).toEqual(["Sample Supply"]);
+    expect(groups[0]?.items.map((item) => item.label)).toEqual(["Panel"]);
+    expect(groups[0]?.items[0]?.kind).toBe("order");
+    expect(groups[0]?.items[0]?.timing).toBe("overdue");
+    expect(groups[0]?.items[0]?.href).toBe("/projects/job-a/orders");
   });
 });

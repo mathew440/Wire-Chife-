@@ -145,6 +145,25 @@ describe("PDF export", () => {
           ballInCourt: "GC",
         },
       ],
+      orders: [
+        {
+          description: "Panel",
+          vendor: "Sample Supply",
+          quantity: "2",
+          status: "shipped",
+          expectedDate: "2026-10-20",
+          late: true,
+        },
+      ],
+      hours: {
+        allowed: 40,
+        used: 18,
+        remaining: 22,
+        percent: 45,
+        burnPerWeek: 42,
+        fromTimeEntries: 12,
+        fromReports: 6,
+      },
     });
     const text = pdfText(bytes);
     expect(text).toContain("WEEKLY SUMMARY");
@@ -153,6 +172,12 @@ describe("PDF export", () => {
     expect(text).toContain("Confirm panel");
     expect(text).toContain("S-1");
     expect(text).toContain("Weather: not entered");
+    expect(text).toContain("Panel");
+    expect(text).toContain("LATE");
+    expect(text).toContain("Hours allowed: 40");
+    expect(text).toContain("Hours used: 18");
+    expect(text).toContain("Hours per week: 42");
+    expect(text).toContain("Typed hours are used first");
   });
 
   it("writes a note PDF that a viewer can open", async () => {

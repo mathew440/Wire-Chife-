@@ -21,6 +21,8 @@ export type AppRoute =
   | { name: "rfi"; id: string; itemId: string }
   | { name: "lookahead"; id: string }
   | { name: "photos"; id: string }
+  | { name: "orders"; id: string }
+  | { name: "hours"; id: string }
   | { name: "contacts" }
   | { name: "missing" };
 
@@ -60,5 +62,7 @@ export function matchRoute(pathname: string): AppRoute {
   if (section === "rfis" && parts.length === 4) return { name: "rfi", id, itemId: parts[3] };
   if (section === "lookahead" && parts.length === 3) return { name: "lookahead", id };
   if (section === "photos" && parts.length === 3) return { name: "photos", id };
+  if (section === "orders" && parts.length === 3) return { name: "orders", id };
+  if (section === "hours" && parts.length === 3) return { name: "hours", id };
   return { name: "missing" };
 }

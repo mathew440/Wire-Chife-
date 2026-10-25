@@ -3,7 +3,7 @@
 import { useDbReady } from "@/components/db-ready";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getSettings, listAllLogItems, listProjects, listTasks, saveSettings } from "@/lib/data/repo";
+import { getSettings, listAllLogItems, listAllOrders, listProjects, listTasks, saveSettings } from "@/lib/data/repo";
 import { buildAttention } from "@/lib/domain/attention";
 import { DUE_SOON_DAYS } from "@/lib/domain/logs";
 import { duePhrase, todayISO } from "@/lib/domain/dates";
@@ -17,6 +17,7 @@ export function RemindersCard() {
   const projects = useLiveQuery(() => (status === "ready" ? listProjects() : undefined), [status]);
   const tasks = useLiveQuery(() => (status === "ready" ? listTasks() : undefined), [status]);
   const logItems = useLiveQuery(() => (status === "ready" ? listAllLogItems() : undefined), [status]);
+  const orders = useLiveQuery(() => (status === "ready" ? listAllOrders() : undefined), [status]);
   const settings = useLiveQuery(() => (status === "ready" ? getSettings() : undefined), [status]);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
   const sent = useRef(false);
@@ -29,7 +30,7 @@ export function RemindersCard() {
   }, []);
 
   const groups =
-    projects && tasks && logItems ? buildAttention({ today, projects, logItems, tasks }) : [];
+    projects && tasks && logItems && orders ? buildAttention({ today, projects, logItems, tasks, orders }) : [];
   const count = groups.reduce((sum, group) => sum + group.items.length, 0);
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export function RemindersCard() {
     void saveSettings({ ...settings, lastNotifiedOn: today });
   }, [settings, permission, count, today]);
 
-  if (!projects || !tasks || !logItems) return null;
+  if (!projects || !tasks || !logItems || !orders) return null;
 
   async function enable() {
     if (typeof Notification === "undefined") return;
@@ -61,7 +62,7 @@ export function RemindersCard() {
       <CardContent className="grid gap-3">
         <h2 className="font-display text-2xl font-bold">Due and overdue</h2>
         <p className="text-sm text-muted-foreground">
-          Submittals, RFIs, and open items that are overdue or due within {DUE_SOON_DAYS} days, grouped by who has them. A row with no due date stays off this list.
+          Submittals, RFIs, open items, and orders that are overdue or due within {DUE_SOON_DAYS} days. An order is late when the expected date has passed and it is not marked delivered. A row with no date stays off this list.
         </p>
         {permission === "unsupported" ? (
           <p className="text-sm text-muted-foreground">This browser does not offer notifications. This list still shows what is due.</p>
@@ -95,7 +96,9 @@ export function RemindersCard() {
                         <span className="font-semibold">{item.label}</span>
                         <span className="text-sm text-muted-foreground">
                           {item.projectName} · {item.kind} · {duePhrase(item.dueDate, today)}
-                          {item.timing === "overdue" ? <span className="font-bold text-orange"> · OVERDUE</span> : null}
+                          {item.timing === "overdue" ? (
+                            <span className="font-bold text-orange"> · {item.kind === "order" ? "LATE" : "OVERDUE"}</span>
+                          ) : null}
                         </span>
                       </Link>
                     </li>

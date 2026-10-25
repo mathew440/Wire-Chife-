@@ -7,14 +7,17 @@ import type {
   Contact,
   DailyReport,
   Estimate,
+  LaborBudget,
   LogItem,
   LogKind,
   MaterialLine,
+  MaterialOrder,
   Person,
   Project,
   ScheduleDate,
   Settings,
   Task,
+  TimeEntry,
 } from "@/lib/data/types";
 
 function meta(id = newId()) {
@@ -167,6 +170,45 @@ export function blankLogItem(projectId: string, kind: LogKind, partial: Partial<
     ballInCourt: "",
     contactId: null,
     notes: "",
+    ...partial,
+  };
+}
+
+export function blankOrder(projectId: string, partial: Partial<MaterialOrder> = {}): MaterialOrder {
+  return {
+    ...meta(),
+    projectId,
+    description: "",
+    vendor: "",
+    poNumber: "",
+    quantity: "",
+    orderedDate: null,
+    expectedDate: null,
+    status: "needed",
+    deliveredDate: null,
+    notes: "",
+    ...partial,
+  };
+}
+
+export function blankLaborBudget(projectId: string, partial: Partial<LaborBudget> = {}): LaborBudget {
+  return {
+    ...meta(),
+    projectId,
+    label: "Total",
+    allowedHours: 0,
+    ...partial,
+  };
+}
+
+export function blankTimeEntry(projectId: string, partial: Partial<TimeEntry> = {}): TimeEntry {
+  return {
+    ...meta(),
+    projectId,
+    date: todayISO(),
+    hours: 0,
+    workerName: "",
+    note: "",
     ...partial,
   };
 }

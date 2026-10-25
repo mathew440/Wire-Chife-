@@ -27,6 +27,8 @@ describe("Pages base path", () => {
     expect(matchRoute("/projects/sample-job-a/rfis")).toEqual({ name: "rfis", id: "sample-job-a" });
     expect(matchRoute("/projects/sample-job-a/lookahead")).toEqual({ name: "lookahead", id: "sample-job-a" });
     expect(matchRoute("/projects/sample-job-a/photos")).toEqual({ name: "photos", id: "sample-job-a" });
+    expect(matchRoute("/projects/sample-job-a/orders")).toEqual({ name: "orders", id: "sample-job-a" });
+    expect(matchRoute("/Wire-Chife-/projects/sample-job-a/hours/")).toEqual({ name: "hours", id: "sample-job-a" });
     expect(matchRoute("/Wire-Chife-/nope")).toEqual({ name: "missing" });
   });
 });

@@ -9,12 +9,15 @@ import type {
   DailyReport,
   EntityMeta,
   Estimate,
+  LaborBudget,
   LogItem,
+  MaterialOrder,
   Person,
   Project,
   ScheduleDate,
   Settings,
   Task,
+  TimeEntry,
 } from "@/lib/data/types";
 import { isScheduleConfirmation } from "@/lib/domain/dates";
 import { normalizeWeather } from "@/lib/domain/reports";
@@ -325,6 +328,9 @@ export async function deleteProject(id: string): Promise<void> {
   const assignments = live(await db.assignments.toArray()).filter((row) => row.projectId === id);
   const attachments = await db.attachments.where("projectId").equals(id).toArray();
   const logItems = live(await db.logItems.toArray()).filter((row) => row.projectId === id);
+  const orders = live(await db.orders.toArray()).filter((row) => row.projectId === id);
+  const budgets = live(await db.laborBudgets.toArray()).filter((row) => row.projectId === id);
+  const timeEntries = live(await db.timeEntries.toArray()).filter((row) => row.projectId === id);
   for (const row of reports) if (!row.deletedAt) await remove(db.reports, "reports", row.id);
   for (const row of tasks) await remove(db.tasks, "tasks", row.id);
   for (const row of estimates) if (!row.deletedAt) await remove(db.estimates, "estimates", row.id);
@@ -332,6 +338,9 @@ export async function deleteProject(id: string): Promise<void> {
   for (const row of assignments) await remove(db.assignments, "assignments", row.id);
   for (const row of attachments) if (!row.deletedAt) await remove(db.attachments, "attachments", row.id);
   for (const row of logItems) await remove(db.logItems, "logItems", row.id);
+  for (const row of orders) await remove(db.orders, "orders", row.id);
+  for (const row of budgets) await remove(db.laborBudgets, "laborBudgets", row.id);
+  for (const row of timeEntries) await remove(db.timeEntries, "timeEntries", row.id);
   await remove(db.projects, "projects", id);
 }
 
@@ -379,6 +388,79 @@ export async function saveLogItem(item: LogItem): Promise<LogItem> {
 
 export async function deleteLogItem(id: string): Promise<void> {
   await remove(db.logItems, "logItems", id);
+}
+
+export async function listAllOrders(): Promise<MaterialOrder[]> {
+  return live(await db.orders.toArray());
+}
+
+export async function listOrders(projectId: string): Promise<MaterialOrder[]> {
+  const rows = live(await db.orders.where("projectId").equals(projectId).toArray());
+  return rows.sort((a, b) => (a.expectedDate ?? "9999-99-99").localeCompare(b.expectedDate ?? "9999-99-99") || a.description.localeCompare(b.description));
+}
+
+export async function saveOrder(order: MaterialOrder): Promise<MaterialOrder> {
+  const project = await getProject(order.projectId);
+  if (!project) throw new Error("That job is not on this device.");
+  const description = order.description.trim();
+  if (!description) throw new Error("An order needs a description.");
+  return put(db.orders, "orders", {
+    ...order,
+    description,
+    vendor: order.vendor.trim(),
+    poNumber: order.poNumber.trim(),
+    quantity: order.quantity.trim(),
+    notes: order.notes.trim(),
+    orderedDate: order.orderedDate || null,
+    expectedDate: order.expectedDate || null,
+    deliveredDate: order.deliveredDate || null,
+  });
+}
+
+export async function deleteOrder(id: string): Promise<void> {
+  await remove(db.orders, "orders", id);
+}
+
+export async function listLaborBudgets(projectId: string): Promise<LaborBudget[]> {
+  const rows = live(await db.laborBudgets.where("projectId").equals(projectId).toArray());
+  return rows.sort((a, b) => a.label.localeCompare(b.label));
+}
+
+export async function saveLaborBudget(budget: LaborBudget): Promise<LaborBudget> {
+  const project = await getProject(budget.projectId);
+  if (!project) throw new Error("That job is not on this device.");
+  const label = budget.label.trim();
+  if (!label) throw new Error("Name this group of hours, or leave it as Total.");
+  if (!Number.isFinite(budget.allowedHours) || budget.allowedHours < 0) {
+    throw new Error("Hours allowed needs a number that is zero or more.");
+  }
+  return put(db.laborBudgets, "laborBudgets", { ...budget, label, allowedHours: budget.allowedHours });
+}
+
+export async function deleteLaborBudget(id: string): Promise<void> {
+  await remove(db.laborBudgets, "laborBudgets", id);
+}
+
+export async function listTimeEntries(projectId: string): Promise<TimeEntry[]> {
+  const rows = live(await db.timeEntries.where("projectId").equals(projectId).toArray());
+  return rows.sort((a, b) => b.date.localeCompare(a.date) || a.workerName.localeCompare(b.workerName));
+}
+
+export async function saveTimeEntry(entry: TimeEntry): Promise<TimeEntry> {
+  const project = await getProject(entry.projectId);
+  if (!project) throw new Error("That job is not on this device.");
+  if (!entry.date) throw new Error("A time entry needs a date.");
+  if (!Number.isFinite(entry.hours) || entry.hours <= 0) throw new Error("Enter the hours worked.");
+  return put(db.timeEntries, "timeEntries", {
+    ...entry,
+    hours: entry.hours,
+    workerName: entry.workerName.trim(),
+    note: entry.note.trim(),
+  });
+}
+
+export async function deleteTimeEntry(id: string): Promise<void> {
+  await remove(db.timeEntries, "timeEntries", id);
 }
 
 export async function getSettings(): Promise<Settings> {

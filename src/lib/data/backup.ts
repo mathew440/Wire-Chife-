@@ -7,12 +7,15 @@ import type {
   ChangeLogEntry,
   DailyReport,
   Estimate,
+  LaborBudget,
   LogItem,
+  MaterialOrder,
   Person,
   Project,
   ScheduleDate,
   Settings,
   Task,
+  TimeEntry,
 } from "@/lib/data/types";
 
 export interface BackupFile {
@@ -31,6 +34,10 @@ export interface BackupFile {
   changelog: ChangeLogEntry[];
   /** Absent on backups exported before the submittal and RFI log. */
   logItems?: LogItem[];
+  /** Absent on backups exported before orders and hours. */
+  orders?: MaterialOrder[];
+  laborBudgets?: LaborBudget[];
+  timeEntries?: TimeEntry[];
 }
 
 export async function exportBackup(): Promise<BackupFile> {
@@ -56,6 +63,9 @@ export async function exportBackup(): Promise<BackupFile> {
     attachments: encoded,
     changelog: await db.changelog.toArray(),
     logItems: await db.logItems.toArray(),
+    orders: await db.orders.toArray(),
+    laborBudgets: await db.laborBudgets.toArray(),
+    timeEntries: await db.timeEntries.toArray(),
   };
 }
 
@@ -108,6 +118,9 @@ export async function importBackup(file: BackupFile): Promise<void> {
       db.schedule,
       db.attachments,
       db.logItems,
+      db.orders,
+      db.laborBudgets,
+      db.timeEntries,
       db.changelog,
       db.settings,
     ],
@@ -122,6 +135,9 @@ export async function importBackup(file: BackupFile): Promise<void> {
         db.schedule.clear(),
         db.attachments.clear(),
         db.logItems.clear(),
+        db.orders.clear(),
+        db.laborBudgets.clear(),
+        db.timeEntries.clear(),
         db.changelog.clear(),
         db.settings.clear(),
       ]);
@@ -134,6 +150,9 @@ export async function importBackup(file: BackupFile): Promise<void> {
       await db.schedule.bulkPut(file.schedule ?? []);
       await db.attachments.bulkPut(attachments);
       await db.logItems.bulkPut(file.logItems ?? []);
+      await db.orders.bulkPut(file.orders ?? []);
+      await db.laborBudgets.bulkPut(file.laborBudgets ?? []);
+      await db.timeEntries.bulkPut(file.timeEntries ?? []);
       await db.changelog.bulkPut(file.changelog ?? []);
       if (file.settings) await db.settings.put(file.settings);
     },
@@ -155,13 +174,16 @@ export async function importJob(file: BackupFile, projectId: string): Promise<vo
   const estimates = (file.estimates ?? []).filter((row) => row.projectId === projectId);
   const schedule = (file.schedule ?? []).filter((row) => row.projectId === projectId);
   const logItems = (file.logItems ?? []).filter((row) => row.projectId === projectId);
+  const orders = (file.orders ?? []).filter((row) => row.projectId === projectId);
+  const laborBudgets = (file.laborBudgets ?? []).filter((row) => row.projectId === projectId);
+  const timeEntries = (file.timeEntries ?? []).filter((row) => row.projectId === projectId);
   const assignments = (file.assignments ?? []).filter((row) => row.projectId === projectId);
   const personIds = new Set(assignments.map((row) => row.personId));
   const people = (file.people ?? []).filter((person) => personIds.has(person.id));
   const attachments = decodeAttachments(file).filter((row) => row.projectId === projectId);
   await db.transaction(
     "rw",
-    [db.projects, db.people, db.assignments, db.reports, db.tasks, db.estimates, db.schedule, db.attachments, db.logItems],
+    [db.projects, db.people, db.assignments, db.reports, db.tasks, db.estimates, db.schedule, db.attachments, db.logItems, db.orders, db.laborBudgets, db.timeEntries],
     async () => {
       await db.projects.put(project);
       if (people.length) await db.people.bulkPut(people);
@@ -172,6 +194,9 @@ export async function importJob(file: BackupFile, projectId: string): Promise<vo
       if (schedule.length) await db.schedule.bulkPut(schedule);
       if (attachments.length) await db.attachments.bulkPut(attachments);
       if (logItems.length) await db.logItems.bulkPut(logItems);
+      if (orders.length) await db.orders.bulkPut(orders);
+      if (laborBudgets.length) await db.laborBudgets.bulkPut(laborBudgets);
+      if (timeEntries.length) await db.timeEntries.bulkPut(timeEntries);
     },
   );
 }

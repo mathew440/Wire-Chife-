@@ -1,13 +1,14 @@
-import type { LogItem, Project, Task } from "@/lib/data/types";
+import type { LogItem, MaterialOrder, Project, Task } from "@/lib/data/types";
 import { isOpenTask, isOverdueTask } from "@/lib/domain/dashboard";
 import { addDays } from "@/lib/domain/dates";
 import { DUE_SOON_DAYS, isDueSoonLog, isOverdueLog } from "@/lib/domain/logs";
+import { isDueSoonOrder, isLateOrder } from "@/lib/domain/orders";
 
 export interface AttentionItem {
   id: string;
   projectId: string;
   projectName: string;
-  kind: "submittal" | "rfi" | "open item";
+  kind: "submittal" | "rfi" | "open item" | "order";
   label: string;
   owner: string;
   dueDate: string;
@@ -27,6 +28,7 @@ export function buildAttention(input: {
   projects: Project[];
   logItems: LogItem[];
   tasks: Task[];
+  orders?: MaterialOrder[];
 }): AttentionGroup[] {
   const names = new Map(input.projects.map((project) => [project.id, project.name]));
   const items: AttentionItem[] = [];
@@ -49,6 +51,26 @@ export function buildAttention(input: {
       dueDate: item.dueDate,
       timing: overdue ? "overdue" : "due-soon",
       href: `/projects/${item.projectId}/${item.kind === "rfi" ? "rfis" : "submittals"}/${item.id}`,
+    });
+  }
+
+  for (const order of input.orders ?? []) {
+    if (order.deletedAt || !order.expectedDate) continue;
+    const late = isLateOrder(order, input.today);
+    const dueSoon = isDueSoonOrder(order, input.today);
+    if (!late && !dueSoon) continue;
+    const projectName = names.get(order.projectId);
+    if (!projectName) continue;
+    items.push({
+      id: order.id,
+      projectId: order.projectId,
+      projectName,
+      kind: "order",
+      label: order.description || "Order",
+      owner: order.vendor.trim() || "No vendor",
+      dueDate: order.expectedDate,
+      timing: late ? "overdue" : "due-soon",
+      href: `/projects/${order.projectId}/orders`,
     });
   }
 

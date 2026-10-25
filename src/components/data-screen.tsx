@@ -152,7 +152,7 @@ export function DataScreen() {
           <CardContent className="grid gap-3">
             <h2 className="font-display text-2xl font-bold">Backup</h2>
             <p className="text-sm text-muted-foreground">
-              Jobs, photos, and logs live in this phone&apos;s storage. Export a JSON file before you change phones. On iPhone, share it into Files.
+              Jobs, photos, logs, orders, and hours live in this phone&apos;s storage. Export a JSON file before you change phones. On iPhone, share it into Files. An older backup that has none of those still loads.
             </p>
             <Button type="button" onClick={() => void download()}>
               Export backup

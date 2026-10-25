@@ -1,7 +1,9 @@
 import { foremanDisplay, preparedByLine } from "@/lib/data/roles";
 import { confirmationLabel, formatDay } from "@/lib/domain/dates";
+import { formatHours } from "@/lib/domain/hours";
 import { logStatusLabel } from "@/lib/domain/logs";
-import type { Confirmation, LogItem, Task } from "@/lib/data/types";
+import { orderStatusLabel } from "@/lib/domain/orders";
+import type { Confirmation, LogItem, OrderStatus, Task } from "@/lib/data/types";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { slug } from "@/lib/pdf/daily-report-pdf";
 
@@ -30,6 +32,23 @@ export interface WeeklySummaryPdfInput {
   reports: WeeklyReportSlice[];
   openItems: Pick<Task, "title" | "owner" | "dueDate" | "status" | "evidence">[];
   openLogs: Pick<LogItem, "kind" | "number" | "description" | "status" | "dueDate" | "ballInCourt">[];
+  orders: Array<{
+    description: string;
+    vendor: string;
+    quantity: string;
+    status: OrderStatus;
+    expectedDate: string | null;
+    late: boolean;
+  }>;
+  hours: {
+    allowed: number | null;
+    used: number;
+    remaining: number | null;
+    percent: number | null;
+    burnPerWeek: number | null;
+    fromTimeEntries: number;
+    fromReports: number;
+  };
 }
 
 const NAVY = rgb(0.05, 0.08, 0.13);
@@ -95,6 +114,44 @@ export async function buildWeeklySummaryPdf(input: WeeklySummaryPdfInput): Promi
       sheet.line(`${name} ${title}  ·  ${logStatusLabel(item.status)}  ·  ${item.ballInCourt || "No ball in court"}  ·  ${due}`, 9, font, INK);
     }
   }
+  sheet.gap(12);
+  sheet.line("Orders", 12, bold, TEAL);
+  if (input.orders.length === 0) {
+    sheet.line("No orders on this job.", 9, font, MUTED);
+  } else {
+    for (const order of input.orders) {
+      const expected = order.expectedDate ? formatDay(order.expectedDate, input.weekEnding) : "No expected date";
+      const late = order.late ? "  ·  LATE" : "";
+      sheet.line(
+        `${order.description || "Order"}  ·  ${order.vendor || "No vendor"}  ·  ${order.quantity || "Quantity not entered"}  ·  ${orderStatusLabel(order.status)}  ·  ${expected}${late}`,
+        9,
+        font,
+        order.late ? ORANGE : INK,
+      );
+    }
+  }
+  sheet.gap(12);
+  sheet.line("Hours", 12, bold, TEAL);
+  sheet.line(input.hours.allowed == null ? "Hours allowed: not set" : `Hours allowed: ${formatHours(input.hours.allowed)}`, 9, font, INK);
+  sheet.line(
+    `Hours used: ${formatHours(input.hours.used)}  ·  ${formatHours(input.hours.fromTimeEntries)} typed  ·  ${formatHours(input.hours.fromReports)} from daily reports`,
+    9,
+    font,
+    INK,
+  );
+  sheet.line(
+    input.hours.remaining == null ? "Hours left: set hours allowed to see this" : `Hours left: ${formatHours(input.hours.remaining)}`,
+    9,
+    font,
+    INK,
+  );
+  if (input.hours.percent != null) {
+    sheet.line(`Percent used: ${formatHours(input.hours.percent)}%`, 9, font, input.hours.percent > 100 ? ORANGE : INK);
+  }
+  if (input.hours.burnPerWeek != null) {
+    sheet.line(`Hours per week: ${formatHours(input.hours.burnPerWeek)}`, 9, font, INK);
+  }
+  sheet.line("Typed hours are used first. A daily report is added only on a day with no typed hours.", 8, font, MUTED);
   sheet.finish(input.isSample);
   doc.setTitle(`${input.projectName} weekly summary ${input.weekEnding}`);
   doc.setAuthor(input.preparedBy);

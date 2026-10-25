@@ -202,7 +202,7 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
         title="Delete this job?"
-        body="Reports, open items, submittals, RFIs, photos, estimates, dates, crew assignments, and files for this job come off the device. Other jobs stay."
+        body="Reports, open items, submittals, RFIs, photos, orders, hours, estimates, dates, crew assignments, and files for this job come off the device. Other jobs stay."
         confirmLabel="Delete job"
         onConfirm={() => {
           if (!projectId) return;
