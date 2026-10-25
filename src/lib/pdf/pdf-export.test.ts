@@ -40,8 +40,9 @@ function pdfText(bytes: Uint8Array): string {
 }
 
 const report = {
-  company: "AKA Electric",
+  company: "AKA Electric Inc",
   preparedBy: "Mat Hiner, Project Manager",
+  email: "Mathew@akaelectricinc.com",
   foremanName: "",
   projectName: "Sample Job A",
   jobNumber: "1001",
@@ -81,8 +82,9 @@ describe("PDF export", () => {
 
   it("builds an estimate PDF with no pricing", async () => {
     const bytes = await buildEstimatePdf({
-      company: "AKA Electric",
+      company: "AKA Electric Inc",
       preparedBy: "Mat Hiner, Project Manager",
+      email: "Mathew@akaelectricinc.com",
       foremanName: "",
       projectName: "Sample Job A",
       jobNumber: "1001",
@@ -110,8 +112,9 @@ describe("PDF export", () => {
 
   it("builds a weekly summary from saved reports and open items", async () => {
     const bytes = await buildWeeklySummaryPdf({
-      company: "AKA Electric",
+      company: "AKA Electric Inc",
       preparedBy: "Mat Hiner, Project Manager",
+      email: "Mathew@akaelectricinc.com",
       foremanName: "",
       projectName: "Sample Job A",
       jobNumber: "1001",
@@ -145,7 +148,7 @@ describe("PDF export", () => {
     });
     const text = pdfText(bytes);
     expect(text).toContain("WEEKLY SUMMARY");
-    expect(text).toContain("Prepared by Mat Hiner, Project Manager");
+    expect(text).toContain("Prepared by Mat Hiner, Project Manager, AKA Electric Inc, Mathew@akaelectricinc.com");
     expect(text).toContain("Pulled feeder");
     expect(text).toContain("Confirm panel");
     expect(text).toContain("S-1");

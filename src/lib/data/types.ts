@@ -205,7 +205,10 @@ export interface Settings extends EntityMeta {
   profileRole: string;
   /** Separate from the project manager. Blank until someone verifies the name. */
   foremanName: string;
+  /** The user's company. Default is AKA Electric Inc. */
   companyName: string;
+  /** The user's email. Empty on rows saved before this field existed. */
+  profileEmail: string;
   samplesSeeded: boolean;
   /**
    * Older apps set this once a starter book had been considered. Matching it
@@ -214,6 +217,8 @@ export interface Settings extends EntityMeta {
   seedRevision: string;
   /** True after the one-time Foreman → Project Manager seed correction. */
   seededRoleMigrated: boolean;
+  /** True after empty company and email fields were filled once. */
+  profileContactMigrated: boolean;
   /** Local calendar day a due-item notification was last shown. Empty if never. */
   lastNotifiedOn: string;
 }

@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     default: "Wire Chief",
     template: "%s · Wire Chief",
   },
-  description: "Jobsite daily reports, crew, open items, and material takeoffs for AKA Electric. Stored on this device.",
+  description: "Jobsite daily reports, crew, open items, and material takeoffs for AKA Electric Inc. Stored on this device.",
   applicationName: "Wire Chief",
   appleWebApp: {
     capable: true,

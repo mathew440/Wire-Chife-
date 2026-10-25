@@ -392,14 +392,18 @@ function normalizeSettings(settings: Settings): Settings {
   const stored = settings as Settings & {
     profileRole?: string;
     foremanName?: string;
+    profileEmail?: string;
     seededRoleMigrated?: boolean;
+    profileContactMigrated?: boolean;
     lastNotifiedOn?: string;
   };
   return {
     ...settings,
     profileRole: stored.profileRole ?? "",
     foremanName: stored.foremanName ?? "",
+    profileEmail: stored.profileEmail ?? "",
     seededRoleMigrated: stored.seededRoleMigrated ?? false,
+    profileContactMigrated: stored.profileContactMigrated ?? false,
     lastNotifiedOn: stored.lastNotifiedOn ?? "",
   };
 }

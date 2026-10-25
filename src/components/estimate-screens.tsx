@@ -8,7 +8,7 @@ import { EmptyState, InlineError, PageFallback, StorageError } from "@/component
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { blankEstimate, blankMaterialLine } from "@/lib/data/factories";
-import { foremanDisplay, preparedByLabel } from "@/lib/data/roles";
+import { foremanDisplay, preparedByLabel, preparedByLine } from "@/lib/data/roles";
 import { deleteEstimate, getEstimate, getProject, getSettings, listEstimates, saveEstimate } from "@/lib/data/repo";
 import { crewTime, materialSummary } from "@/lib/domain/estimates";
 import { formatDay } from "@/lib/domain/dates";
@@ -113,6 +113,7 @@ export function EstimateEditor({ params }: { params: Promise<{ id: string; estim
     const bytes = await buildEstimatePdf({
       company: settings.companyName,
       preparedBy: preparedByLabel(settings.profileName, settings.profileRole),
+      email: settings.profileEmail,
       foremanName: settings.foremanName,
       projectName: project.name,
       jobNumber: project.jobNumber,
@@ -142,7 +143,7 @@ export function EstimateEditor({ params }: { params: Promise<{ id: string; estim
       <PageIntro
         eyebrow={project.name}
         title={isNew ? "New estimate" : draft.title || "Estimate"}
-        description={`Prepared by ${preparedByLabel(settings.profileName, settings.profileRole)}. Foreman: ${foremanDisplay(settings.foremanName)}. Quantities and crew time only. This sheet is kept apart from daily reports, and it has no price column.`}
+        description={`Prepared by ${preparedByLine(settings.profileName, settings.profileRole, settings.companyName, settings.profileEmail)}. Foreman: ${foremanDisplay(settings.foremanName)}. Quantities and crew time only. This sheet is kept apart from daily reports, and it has no price column.`}
       />
       {draft.isSample ? <SampleBadge /> : null}
       <p className="rounded-xl border border-orange/40 bg-orange/10 px-4 py-3 text-sm font-bold">No pricing. Item, size, quantity, unit, and labor as crew size times duration.</p>

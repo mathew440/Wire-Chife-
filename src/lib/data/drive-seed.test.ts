@@ -24,6 +24,8 @@ describe("empty starter book", () => {
     const settings = await getSettings();
     expect(settings.profileName).toBe("Mat Hiner");
     expect(settings.profileRole).toBe("Project Manager");
+    expect(settings.companyName).toBe("AKA Electric Inc");
+    expect(settings.profileEmail).toBe("Mathew@akaelectricinc.com");
     expect(settings.foremanName).toBe("");
     expect(settings.seedRevision).toBe(DRIVE_SEED_REVISION);
     expect(settings.samplesSeeded).toBe(false);

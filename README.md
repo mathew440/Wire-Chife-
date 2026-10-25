@@ -1,6 +1,6 @@
 # Wire Chief
 
-Wire Chief is a mobile-first job book for an electrical contractor. Mat Hiner at AKA Electric in northern Ohio is the project manager. The foreman is a separate field and stays blank until that name is verified. It is not RivetOne and it does not share data with that app.
+Wire Chief is a mobile-first job book for an electrical contractor. Mat Hiner, Project Manager at AKA Electric Inc, is the default profile. His email on a new device is Mathew@akaelectricinc.com. The foreman is a separate field and stays blank until that name is verified. It is not RivetOne and it does not share data with that app.
 
 Jobs, daily reports, crew, open items, material takeoffs, and files stay in **IndexedDB on this phone or computer**. Version 1 has no account, no server, and no credentials.
 
@@ -36,7 +36,7 @@ The first open starts empty. There are no built-in jobs. Add a job, or import a 
 
 Each job has a submittal log, an RFI log, a 2-week and 6-week look-ahead with start and end dates, a photo log by area, and a weekly PDF. Photos are reduced in size on the device and travel with the backup. Contacts have a company and an email, and the Contacts tab lists them across jobs. The job list shows what is overdue or due within 7 days. The browser can show one notification a day when you allow it.
 
-Daily reports keep Completed, Ongoing, Planned, and Needs verification as separate notes. Nothing promotes a note from one to another. Weather stays **unverified** until you type it. Schedule dates can be tentative, confirmed, or needs verification. Estimates are quantities and crew size × duration, with no price fields, and they export as their own PDF. The weekly PDF uses the name and role saved on this device. The default profile is Mat Hiner, Project Manager.
+Daily reports keep Completed, Ongoing, Planned, and Needs verification as separate notes. Nothing promotes a note from one to another. Weather stays **unverified** until you type it. Schedule dates can be tentative, confirmed, or needs verification. Estimates are quantities and crew size × duration, with no price fields, and they export as their own PDF. The weekly PDF uses the name, role, company, and email saved on this device. The default profile is Mat Hiner, Project Manager, AKA Electric Inc, Mathew@akaelectricinc.com. A blank company or email on an older device is filled in once. A company or email you already typed is left as it is. The old built-in company name AKA Electric is updated to AKA Electric Inc.
 
 ## How a backend would plug in later
 

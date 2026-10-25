@@ -1,4 +1,5 @@
 import { db } from "@/lib/data/db";
+import { migrateProfileContact } from "@/lib/data/profile-migration";
 import { migrateSeededProjectManager } from "@/lib/data/role-migration";
 import type {
   Assignment,
@@ -138,6 +139,7 @@ export async function importBackup(file: BackupFile): Promise<void> {
     },
   );
   await migrateSeededProjectManager();
+  await migrateProfileContact();
 }
 
 /**

@@ -1,4 +1,4 @@
-const CACHE = "wire-chief-shell-v5";
+const CACHE = "wire-chief-shell-v6";
 const BASE = "/Wire-Chife-";
 const SHELL = [
   `${BASE}/`,

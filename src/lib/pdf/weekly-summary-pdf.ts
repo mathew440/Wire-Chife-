@@ -1,4 +1,4 @@
-import { foremanDisplay } from "@/lib/data/roles";
+import { foremanDisplay, preparedByLine } from "@/lib/data/roles";
 import { confirmationLabel, formatDay } from "@/lib/domain/dates";
 import { logStatusLabel } from "@/lib/domain/logs";
 import type { Confirmation, LogItem, Task } from "@/lib/data/types";
@@ -20,6 +20,7 @@ export interface WeeklyReportSlice {
 export interface WeeklySummaryPdfInput {
   company: string;
   preparedBy: string;
+  email: string;
   foremanName: string;
   projectName: string;
   jobNumber: string;
@@ -52,7 +53,7 @@ export async function buildWeeklySummaryPdf(input: WeeklySummaryPdfInput): Promi
     font,
     MUTED,
   );
-  sheet.line(`Prepared by ${input.preparedBy}  ·  ${input.company}`, 9, font, MUTED);
+  sheet.line(`Prepared by ${preparedByLine(input.preparedBy, "", input.company, input.email)}`, 9, font, MUTED);
   sheet.line(`Foreman: ${foremanDisplay(input.foremanName)}`, 9, font, input.foremanName.trim() ? INK : ORANGE);
   sheet.gap(10);
   sheet.line("Daily log", 12, bold, TEAL);
@@ -122,13 +123,16 @@ class Sheet {
   }
 
   banner(input: WeeklySummaryPdfInput) {
-    this.page.drawRectangle({ x: 0, y: 736, width: 612, height: 56, color: NAVY });
-    this.page.drawRectangle({ x: 0, y: 732, width: 612, height: 4, color: rgb(0.24, 0.78, 0.7) });
+    const identity = `Prepared by ${preparedByLine(input.preparedBy, "", input.company, input.email)}`;
+    this.page.drawRectangle({ x: 0, y: 716, width: 612, height: 76, color: NAVY });
+    this.page.drawRectangle({ x: 0, y: 712, width: 612, height: 4, color: rgb(0.24, 0.78, 0.7) });
     this.page.drawText("WIRE CHIEF", { x: 32, y: 764, size: 14, font: this.bold, color: PAPER });
-    this.page.drawText("WEEKLY SUMMARY", { x: 32, y: 746, size: 10, font: this.font, color: rgb(0.7, 0.9, 0.86) });
+    this.page.drawText("WEEKLY SUMMARY", { x: 32, y: 748, size: 10, font: this.font, color: rgb(0.7, 0.9, 0.86) });
+    this.page.drawText(identity, { x: 32, y: 730, size: 8, font: this.font, color: PAPER });
     if (input.isSample) {
-      this.page.drawText("SAMPLE", { x: 520, y: 746, size: 9, font: this.bold, color: rgb(0.95, 0.62, 0.32) });
+      this.page.drawText("SAMPLE", { x: 520, y: 764, size: 9, font: this.bold, color: rgb(0.95, 0.62, 0.32) });
     }
+    this.y = 696;
   }
 
   line(text: string, size: number, font: PDFFont, color: ReturnType<typeof rgb>) {
