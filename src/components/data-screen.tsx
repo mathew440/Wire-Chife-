@@ -8,9 +8,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { backupFileName, exportBackup, importBackup, importJob, jobsInBackup, type BackupFile } from "@/lib/data/backup";
 import { getSettings, listChangelog, removeSampleData, saveSettings } from "@/lib/data/repo";
 import { foremanDisplay, preparedByLine, SEEDED_COMPANY_NAME, SEEDED_PROFILE_EMAIL, SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
-import { localOnlySync } from "@/lib/sync/adapter";
+import { signOut, syncNow } from "@/lib/sync/engine";
+import { getSyncSnapshot, subscribeSync, syncLabel } from "@/lib/sync/status";
 import { useLiveQuery } from "dexie-react-hooks";
-import { useEffect, useState } from "react";
+import { AppLink as Link } from "@/components/app-link";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
 export function DataScreen() {
@@ -28,6 +30,7 @@ export function DataScreen() {
   const [mergeFile, setMergeFile] = useState<BackupFile | null>(null);
   const [mergeJobId, setMergeJobId] = useState<string | null>(null);
   const offline = useOffline();
+  const sync = useSyncExternalStore(subscribeSync, getSyncSnapshot, getSyncSnapshot);
 
   if (status === "error") return <StorageError message={error ?? "Storage error"} />;
   if (status !== "ready" || !settings || !changes) return <PageFallback />;
@@ -112,9 +115,9 @@ export function DataScreen() {
   return (
     <div className="grid gap-5">
       <PageIntro
-        eyebrow={localOnlySync.id === "local-only" ? "Local only" : "Sync"}
+        eyebrow={sync.ready ? syncLabel(sync.phase) : "This phone"}
         title="Data"
-        description="The job book lives in IndexedDB on this phone or computer. There is no account and no server in this version."
+        description="The job book stays on this phone, so it works with no signal and with no sign-in. Sign in when you want Mat, Jason, and Bill to share the same jobs."
       />
       {offline ? (
         <p className="rounded-xl border border-orange/40 bg-orange/10 px-4 py-3 text-sm">
@@ -150,6 +153,24 @@ export function DataScreen() {
         </Card>
         <Card className="bg-card text-base">
           <CardContent className="grid gap-3">
+            <h2 className="font-display text-2xl font-bold">Sharing</h2>
+            <p className="text-sm text-muted-foreground">
+              {sync.email ? `Signed in as ${sync.email}.` : "You are not signed in. Jobs on this phone stay here."} {sync.lastError ?? "Sync runs when you are signed in and online."}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" onClick={() => void syncNow().then(() => toast.success("Sync checked")).catch((caught: unknown) => toast.error(caught instanceof Error ? caught.message : "Sync did not finish"))}>
+                Sync now
+              </Button>
+              {sync.email ? (
+                <Button type="button" variant="outline" onClick={() => void signOut().then(() => toast.success("Signed out on this phone"))}>
+                  Sign out
+                </Button>
+              ) : (
+                <Button variant="outline" nativeButton={false} render={<Link href="/sign-in" />}>
+                  Sign in
+                </Button>
+              )}
+            </div>
             <h2 className="font-display text-2xl font-bold">Backup</h2>
             <p className="text-sm text-muted-foreground">
               Jobs, photos, logs, orders, and hours live in this phone&apos;s storage. Export a JSON file before you change phones. On iPhone, share it into Files. An older backup that has none of those still loads.
@@ -250,7 +271,7 @@ export function DataScreen() {
           <CardContent className="grid gap-3">
             <h2 className="font-display text-2xl font-bold">Install and sync</h2>
             <p className="text-sm text-muted-foreground">
-              On iPhone, open https://mathew440.github.io/Wire-Chife-/ in Safari, tap Share, then Add to Home Screen. The icon then opens full screen. Open it once while you have signal. After that, a job you have already opened still loads with no signal. The job book itself stays in IndexedDB on this phone. {localOnlySync.id === "local-only" ? "Nothing is uploaded." : ""} A change log ({changes.length} rows) is kept for a later sync service.
+              On iPhone, open https://mathew440.github.io/Wire-Chife-/ in Safari, tap Share, then Add to Home Screen. The icon then opens full screen. Open it once while you have signal. After that, a job you have already opened still loads with no signal. The job book itself stays in IndexedDB on this phone. A backup file still moves a copy by hand. A change log ({changes.length} rows) stays on this phone.
             </p>
           </CardContent>
         </Card>

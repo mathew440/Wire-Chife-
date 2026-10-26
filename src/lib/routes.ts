@@ -24,6 +24,7 @@ export type AppRoute =
   | { name: "orders"; id: string }
   | { name: "hours"; id: string }
   | { name: "contacts" }
+  | { name: "sign-in" }
   | { name: "missing" };
 
 function decodePart(value: string): string {
@@ -41,6 +42,7 @@ export function matchRoute(pathname: string): AppRoute {
   if (parts.length === 1 && parts[0] === "crew") return { name: "crew" };
   if (parts.length === 1 && parts[0] === "data") return { name: "data" };
   if (parts.length === 1 && parts[0] === "contacts") return { name: "contacts" };
+  if (parts.length === 1 && parts[0] === "sign-in") return { name: "sign-in" };
   if (parts[0] !== "projects") return { name: "missing" };
   if (parts.length === 2 && parts[1] === "new") return { name: "project-new" };
   if (parts.length === 2) return { name: "project", id: parts[1] };

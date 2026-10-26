@@ -15,6 +15,7 @@ import { PhotoLog } from "@/components/photo-screen";
 import { EditProject, ProjectForm } from "@/components/project-form";
 import { ProjectDashboard } from "@/components/project-dashboard";
 import { ReportEditor, ReportList } from "@/components/report-screens";
+import { SignInScreen } from "@/components/sign-in-screen";
 import { EmptyState, PageFallback } from "@/components/states";
 import { TaskEditor, TaskList } from "@/components/task-screens";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,8 @@ function RouteView({ route }: { route: AppRoute }) {
       return <DataScreen />;
     case "contacts":
       return <ContactsDirectory />;
+    case "sign-in":
+      return <SignInScreen />;
     case "project-new":
       return <ProjectForm />;
     case "project":

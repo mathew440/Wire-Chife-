@@ -8,6 +8,7 @@ export function generateStaticParams(): Array<{ slug: string[] }> {
     { slug: ["crew"] },
     { slug: ["data"] },
     { slug: ["contacts"] },
+    { slug: ["sign-in"] },
     { slug: ["projects", "new"] },
   ];
 }

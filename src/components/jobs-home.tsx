@@ -38,7 +38,7 @@ export function JobsHome() {
       <PageIntro
         eyebrow={settings.companyName || SEEDED_COMPANY_NAME}
         title="Jobs"
-        description="Each job keeps its own reports, orders, hours, logs, photos, crew, open items, estimates, and files. Nothing here leaves this device."
+        description="Each job keeps its own reports, orders, hours, logs, photos, crew, open items, estimates, and files. Without a sign-in they stay on this phone."
         actions={
           <Button nativeButton={false} render={<Link href="/projects/new" />}>New job</Button>
         }

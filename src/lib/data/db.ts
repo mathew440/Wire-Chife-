@@ -5,6 +5,7 @@ import type {
   ChangeLogEntry,
   DailyReport,
   Estimate,
+  DeviceSync,
   LaborBudget,
   LogItem,
   MaterialOrder,
@@ -19,8 +20,8 @@ import type {
 /**
  * Schema version 1 is the local-only book. Version 2 adds the submittal and
  * RFI log. Version 3 adds material orders, hours allowed, and time entries.
- * Do not rewrite an older version. Extra fields on existing rows do not
- * need a version bump and are not deleted.
+ * Version 4 adds a device-only sync cursor. Do not rewrite an older version.
+ * Extra fields on existing rows do not need a version bump and are not deleted.
  */
 export class WireChiefDB extends Dexie {
   projects!: Table<Project, string>;
@@ -37,6 +38,7 @@ export class WireChiefDB extends Dexie {
   timeEntries!: Table<TimeEntry, string>;
   changelog!: Table<ChangeLogEntry, string>;
   settings!: Table<Settings, string>;
+  deviceSync!: Table<DeviceSync, string>;
 
   constructor() {
     super("wire-chief");
@@ -59,6 +61,9 @@ export class WireChiefDB extends Dexie {
       orders: "id, projectId, status, expectedDate",
       laborBudgets: "id, projectId",
       timeEntries: "id, projectId, date",
+    });
+    this.version(4).stores({
+      deviceSync: "id",
     });
   }
 }

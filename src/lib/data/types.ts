@@ -1,7 +1,6 @@
 /**
- * Wire Chief records live on the device. Every row carries sync metadata so a
- * later multi-user backend can push the change log without reshaping the jobs.
- * v1 never uploads these fields.
+ * Wire Chief records live on the device first. Every row carries sync metadata
+ * so a signed-in phone can push and pull without reshaping the jobs.
  */
 export type SyncState = "local" | "pending" | "synced";
 
@@ -12,6 +11,17 @@ export interface EntityMeta {
   deletedAt: string | null;
   syncState: SyncState;
   rev: number;
+  /** Email the shared database recorded on the last accepted write. Absent on local-only rows. */
+  updatedBy?: string;
+}
+
+/** Device-only sync cursor. Not a job record and not part of a backup. */
+export interface DeviceSync {
+  id: "local";
+  /** Latest server updated_at already pulled. Null until the first pull. */
+  cursor: string | null;
+  /** Null until this phone answers the upload question. */
+  uploadChoice: "yes" | "no" | null;
 }
 
 export type ProjectStatus = "unverified" | "bidding" | "active" | "punch" | "on-hold" | "complete";
@@ -222,6 +232,8 @@ export interface Attachment extends EntityMeta {
   mimeType: string;
   size: number;
   blob: Blob;
+  /** Shared storage path. Bytes stay in blob once they are on this phone. */
+  storagePath?: string;
   isSample: boolean;
   /** Set when parentType is "photo". Empty on drawings and older files. */
   area: string;
