@@ -3,6 +3,8 @@
 import { Mark } from "@/components/bits";
 import { useDbReady } from "@/components/db-ready";
 import { ServiceWorkerEffect } from "@/components/pwa";
+import { SyncProvider } from "@/components/sync-provider";
+import { SyncStatusLink } from "@/components/sync-status";
 import { Toaster } from "@/components/ui/sonner";
 import { getProject, getSettings } from "@/lib/data/repo";
 import { SEEDED_COMPANY_NAME, SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
@@ -20,7 +22,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       </Suspense>
       <div className="md:pl-64">
         <MobileBar />
-        <main className="px-4 pt-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:px-8 md:pt-6 md:pb-10">{children}</main>
+        <SyncProvider>
+          <main className="px-4 pt-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:px-8 md:pt-6 md:pb-10">{children}</main>
+        </SyncProvider>
       </div>
       <Suspense fallback={null}>
         <BottomNav />
@@ -40,10 +44,10 @@ function MobileBar() {
         <Mark className="size-10" />
         <span className="font-display text-xl font-bold tracking-[0.14em]">WIRE CHIEF</span>
       </Link>
-      <span className="max-w-[46%] text-right text-sm leading-tight text-muted-foreground">
-        <span className="block truncate">{settings?.profileName || SEEDED_PROFILE_NAME}</span>
-        <span className="block truncate text-xs">{settings?.profileRole || SEEDED_PROFILE_ROLE}</span>
-        <span className="block truncate text-xs">{settings?.companyName || SEEDED_COMPANY_NAME}</span>
+      <span className="flex max-w-[58%] flex-col items-end gap-1 text-right text-sm leading-tight text-muted-foreground">
+        <SyncStatusLink />
+        <span className="block w-full truncate">{settings?.profileName || SEEDED_PROFILE_NAME}</span>
+        <span className="block w-full truncate text-xs">{settings?.profileRole || SEEDED_PROFILE_ROLE}</span>
       </span>
     </header>
   );
@@ -124,7 +128,10 @@ function Sidebar() {
         {settings?.profileName || SEEDED_PROFILE_NAME}
         <span className="mt-1 block">{settings?.profileRole || SEEDED_PROFILE_ROLE}</span>
         <span className="mt-1 block">{settings?.companyName || SEEDED_COMPANY_NAME}</span>
-        <span className="mt-1 block">Saved on this device. No account.</span>
+        <span className="mt-2 block">
+          <SyncStatusLink />
+        </span>
+        <span className="mt-2 block">Saved on this phone. Sign in to share.</span>
       </p>
     </aside>
   );

@@ -9,6 +9,7 @@ import { blankAttachment } from "@/lib/data/factories";
 import { deleteAttachment, getProject, listAttachments, saveAttachment } from "@/lib/data/repo";
 import { formatDay, todayISO } from "@/lib/domain/dates";
 import { prepareUpload } from "@/lib/files/prepare";
+import { ensureAttachmentCached } from "@/lib/sync/engine";
 import type { Attachment } from "@/lib/data/types";
 import { useLiveQuery } from "dexie-react-hooks";
 import { AppLink as Link } from "@/components/app-link";
@@ -98,7 +99,7 @@ export function PhotoLog({ params }: { params: Promise<{ id: string }> }) {
         <InlineError message={formError} />
       </div>
       {photos.length === 0 ? (
-        <EmptyState title="No photos on this job" body="Add a photo with an area and a caption. It does not leave this device." />
+        <EmptyState title="No photos on this job" body="Add a photo with an area and a caption. It stays on this phone, and it is shared when you are signed in." />
       ) : (
         <div className="grid gap-5">
           {areas.map(([name, rows]) => (
@@ -107,7 +108,7 @@ export function PhotoLog({ params }: { params: Promise<{ id: string }> }) {
               <ul className="grid gap-3 sm:grid-cols-2">
                 {rows.map((photo) => (
                   <li key={photo.id} className="grid gap-2 rounded-xl bg-card p-3 ring-1 ring-border">
-                    <PhotoThumb blob={photo.blob} alt={photo.caption || photo.fileName} />
+                    <PhotoThumb id={photo.id} blob={photo.blob} alt={photo.caption || photo.fileName} />
                     <p className="font-semibold">{photo.caption || "No caption"}</p>
                     <p className="text-sm text-muted-foreground">
                       {photo.takenDate ? formatDay(photo.takenDate, today) : "No date"} · {Math.max(1, Math.round(photo.size / 1024))} KB
@@ -147,8 +148,12 @@ function groupByArea(photos: Attachment[]): Array<[string, Attachment[]]> {
   });
 }
 
-function PhotoThumb({ blob, alt }: { blob: Blob; alt: string }) {
+function PhotoThumb({ id, blob, alt }: { id: string; blob: Blob; alt: string }) {
   const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (blob.size > 0) return;
+    void ensureAttachmentCached(id);
+  }, [blob.size, id]);
   useEffect(() => {
     const next = URL.createObjectURL(blob);
     let cancelled = false;
@@ -160,6 +165,7 @@ function PhotoThumb({ blob, alt }: { blob: Blob; alt: string }) {
       URL.revokeObjectURL(next);
     };
   }, [blob]);
+  if (blob.size === 0) return <div className="grid h-40 place-items-center rounded-lg bg-background px-3 text-center text-sm">This photo downloads when you are signed in.</div>;
   if (!url) return <div className="h-40 rounded-lg bg-background" />;
   return (
     // Local photo bytes. next/image cannot read a blob URL in the static export.

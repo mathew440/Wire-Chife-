@@ -19,6 +19,7 @@ import type {
   Task,
   TimeEntry,
 } from "@/lib/data/types";
+import { scheduleSync } from "@/lib/sync/engine";
 import { isScheduleConfirmation } from "@/lib/domain/dates";
 import { normalizeWeather } from "@/lib/domain/reports";
 import type { Table } from "dexie";
@@ -48,6 +49,9 @@ async function put<T extends EntityMeta>(table: Table<T, string>, entity: string
     };
     await db.changelog.add(entry);
     return next;
+  }).then((saved) => {
+    scheduleSync();
+    return saved;
   });
 }
 

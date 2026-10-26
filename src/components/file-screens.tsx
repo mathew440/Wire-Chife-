@@ -19,6 +19,7 @@ import {
 } from "@/lib/data/repo";
 import { formatDay } from "@/lib/domain/dates";
 import { isImage, isPdf, prepareUpload } from "@/lib/files/prepare";
+import { ensureAttachmentCached } from "@/lib/sync/engine";
 import type { AttachmentParent } from "@/lib/data/types";
 import { useLiveQuery } from "dexie-react-hooks";
 import { AppLink as Link, useAppRouter as useRouter } from "@/components/app-link";
@@ -142,6 +143,7 @@ export function FileViewer({ params }: { params: Promise<{ id: string; fileId: s
 
   useEffect(() => {
     if (!file || file.projectId !== id) return;
+    if (file.blob.size === 0) void ensureAttachmentCached(file.id);
     let cancelled = false;
     const objectUrl = URL.createObjectURL(file.blob);
     const pdf = isPdf(file.mimeType, file.fileName);

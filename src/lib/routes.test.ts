@@ -19,6 +19,7 @@ describe("Pages base path", () => {
     });
     expect(matchRoute("/projects/new")).toEqual({ name: "project-new" });
     expect(matchRoute("/Wire-Chife-/contacts/")).toEqual({ name: "contacts" });
+    expect(matchRoute("/sign-in")).toEqual({ name: "sign-in" });
     expect(matchRoute("/projects/sample-job-a/submittals/new")).toEqual({
       name: "submittal",
       id: "sample-job-a",

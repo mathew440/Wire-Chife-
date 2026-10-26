@@ -30,6 +30,7 @@ import { summarizeHours } from "@/lib/domain/hours";
 import { isClosedLog } from "@/lib/domain/logs";
 import { isLateOrder } from "@/lib/domain/orders";
 import { weatherLabel } from "@/lib/domain/reports";
+import { LastEdited } from "@/components/sync-status";
 import { downloadBytes } from "@/lib/pdf/download";
 import { buildWeeklySummaryPdf, weeklyPdfFileName } from "@/lib/pdf/weekly-summary-pdf";
 import type { Confirmation, ScheduleKind } from "@/lib/data/types";
@@ -164,6 +165,7 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
         {project.isSample ? <SampleBadge /> : null}
         <ProjectStatusPill status={project.status} />
       </div>
+      <LastEdited by={project.updatedBy} />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Metric label="Open items" value={String(pulse.openCount)} href={`/projects/${id}/tasks`} />

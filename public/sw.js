@@ -1,4 +1,4 @@
-const CACHE = "wire-chief-shell-v7";
+const CACHE = "wire-chief-shell-v8";
 const BASE = "/Wire-Chife-";
 const SHELL = [
   `${BASE}/`,
@@ -6,6 +6,8 @@ const SHELL = [
   `${BASE}/404.html`,
   `${BASE}/contacts/`,
   `${BASE}/contacts/index.html`,
+  `${BASE}/sign-in/`,
+  `${BASE}/sign-in/index.html`,
   `${BASE}/manifest.webmanifest`,
   `${BASE}/icon-192.png`,
   `${BASE}/icon-512.png`,

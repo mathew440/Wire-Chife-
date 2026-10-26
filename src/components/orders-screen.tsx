@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { blankOrder } from "@/lib/data/factories";
 import { deleteOrder, getProject, listOrders, saveOrder } from "@/lib/data/repo";
 import type { MaterialOrder, OrderStatus } from "@/lib/data/types";
+import { LastEdited } from "@/components/sync-status";
 import { formatDay, todayISO } from "@/lib/domain/dates";
 import { isDueSoonOrder, isLateOrder, ORDER_STATUS_OPTIONS, orderStatusLabel } from "@/lib/domain/orders";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -192,6 +193,7 @@ export function OrdersScreen({ params }: { params: Promise<{ id: string }> }) {
                     {late ? <span className="text-sm font-bold text-orange">LATE</span> : null}
                     {dueSoon ? <span className="text-sm font-bold text-orange">DUE SOON</span> : null}
                     {order.notes ? <span className="text-sm">{order.notes}</span> : null}
+                    <LastEdited by={order.updatedBy} />
                   </div>
                   <Field label="Status">
                     <SelectField
