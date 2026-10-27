@@ -1,6 +1,8 @@
 "use client";
 
 import { DateFlag, PageIntro, ProjectStatusPill, SampleBadge, TextField, SelectField, Field, ConfirmationToggle } from "@/components/bits";
+import { ContactCard } from "@/components/contact-card";
+import { StructuredText } from "@/components/structured-text";
 import { ProjectTabs } from "@/components/chrome";
 import { useDbReady } from "@/components/db-ready";
 import { EmptyState, InlineError, PageFallback, StorageError } from "@/components/states";
@@ -148,7 +150,6 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
       <PageIntro
         eyebrow={project.jobNumber ? `Job ${project.jobNumber}` : "Job"}
         title={project.name}
-        description={`${project.description} ${project.gc ? `GC: ${project.gc}.` : ""} ${project.location}`}
         actions={
           <>
             <Button nativeButton={false} render={<Link href={`/projects/${id}/reports/new`} />}>New report</Button>
@@ -166,6 +167,18 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
         <ProjectStatusPill status={project.status} />
       </div>
       <LastEdited by={project.updatedBy} />
+      <section className="grid gap-2 rounded-xl border-2 border-border bg-card px-4 py-4 text-[17px] leading-[1.6]">
+        <p>
+          <span className="font-bold">Job number</span> {project.jobNumber || "None"}
+        </p>
+        <p>
+          <span className="font-bold">GC</span> {project.gc || "Not entered"}
+        </p>
+        <p>
+          <span className="font-bold">Location</span> {project.location || "Not entered"}
+        </p>
+      </section>
+      {project.description ? <StructuredText text={project.description} collapsible /> : null}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Metric label="Open items" value={String(pulse.openCount)} href={`/projects/${id}/tasks`} />
@@ -197,7 +210,11 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
                   {formatDay(pulse.latest.date, today)} <DateFlag value={pulse.latest.dateConfirmation} />
                   <span className={weather.entered ? "text-teal" : "font-bold text-orange"}>{weather.entered ? "Weather entered" : "Weather unverified"}</span>
                 </p>
-                <p>{pulse.latest.completed || "No completed work written down."}</p>
+                {pulse.latest.completed ? (
+                  <StructuredText text={pulse.latest.completed} />
+                ) : (
+                  <p className="text-[17px] leading-[1.6]">No completed work written down.</p>
+                )}
                 <Button nativeButton={false} render={<Link href={`/projects/${id}/reports/${pulse.latest.id}`} />}>Open report</Button>
               </div>
             ) : (
@@ -259,7 +276,14 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
                         {task.dueDate ? <> · <DateFlag value={task.dueConfirmation} /></> : null}
                         {task.dueDate && isOverdueTask(task, today) ? <span className="font-bold text-orange"> OVERDUE</span> : null}
                       </span>
-                      <span className="text-sm">{task.evidence ? `Source: ${task.evidence}` : "No source yet"}</span>
+                      {task.evidence ? (
+                        <div className="text-[17px] leading-[1.6]">
+                          <p>Source</p>
+                          <StructuredText text={task.evidence} />
+                        </div>
+                      ) : (
+                        <p className="text-[17px] leading-[1.6]">No source yet</p>
+                      )}
                     </Link>
                   </li>
                 ))}
@@ -293,22 +317,11 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
             <CardContent className="grid gap-2">
               <h2 className="font-display text-2xl font-bold">Contacts</h2>
               {project.contacts.length === 0 ? <p className="text-sm text-muted-foreground">No contacts yet.</p> : null}
-              {project.contacts.map((contact) => (
-                <div key={contact.id}>
-                  <p className="font-semibold">{contact.name}</p>
-                  <p className="text-sm text-muted-foreground">{[contact.company, contact.role].filter(Boolean).join(" · ")}</p>
-                  {contact.phone ? (
-                    <a className="block text-sm font-semibold text-teal" href={`tel:${contact.phone}`}>
-                      {contact.phone}
-                    </a>
-                  ) : null}
-                  {contact.email ? (
-                    <a className="block text-sm font-semibold text-teal" href={`mailto:${contact.email}`}>
-                      {contact.email}
-                    </a>
-                  ) : null}
-                </div>
-              ))}
+              <div className="grid gap-4">
+                {project.contacts.map((contact) => (
+                  <ContactCard key={contact.id} contact={contact} compact />
+                ))}
+              </div>
               <Button variant="outline" nativeButton={false} render={<Link href="/contacts" />}>
                 All contacts
               </Button>

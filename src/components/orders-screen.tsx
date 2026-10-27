@@ -1,6 +1,7 @@
 "use client";
 
 import { AreaField, Field, PageIntro, SelectField, TextField } from "@/components/bits";
+import { StructuredText } from "@/components/structured-text";
 import { ProjectTabs } from "@/components/chrome";
 import { useDbReady } from "@/components/db-ready";
 import { EmptyState, InlineError, PageFallback, StorageError } from "@/components/states";
@@ -192,7 +193,7 @@ export function OrdersScreen({ params }: { params: Promise<{ id: string }> }) {
                     </span>
                     {late ? <span className="text-sm font-bold text-orange">LATE</span> : null}
                     {dueSoon ? <span className="text-sm font-bold text-orange">DUE SOON</span> : null}
-                    {order.notes ? <span className="text-sm">{order.notes}</span> : null}
+                    {order.notes ? <StructuredText text={order.notes} /> : null}
                     <LastEdited by={order.updatedBy} />
                   </div>
                   <Field label="Status">

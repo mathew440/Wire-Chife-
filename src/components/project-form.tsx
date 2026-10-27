@@ -1,6 +1,6 @@
 "use client";
 
-import { ConfirmDialog, Field, PageIntro, ProjectStatusPill, SampleBadge, SelectField, TextField } from "@/components/bits";
+import { AreaField, ConfirmDialog, Field, PageIntro, ProjectStatusPill, SampleBadge, SelectField, TextField } from "@/components/bits";
 import { useDbReady } from "@/components/db-ready";
 import { EmptyState, InlineError, PageFallback, StorageError } from "@/components/states";
 import { Button } from "@/components/ui/button";
@@ -101,8 +101,13 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
       <Field label="Location">
         <TextField value={draft.location} onChange={(event) => update({ location: event.target.value })} placeholder="City, OH" />
       </Field>
-      <Field label="What this job is">
-        <TextField value={draft.description} onChange={(event) => update({ description: event.target.value })} placeholder="Scope of work" />
+      <Field label="What this job is" hint="Press return between sections. A line like STATUS: or SCOPE ON RECORD: becomes a heading.">
+        <AreaField
+          value={draft.description}
+          onChange={(event) => update({ description: event.target.value })}
+          className="min-h-40"
+          placeholder={"STATUS:\nWhat is happening on this sample job.\n\nSCOPE ON RECORD:\nWhat the job covers."}
+        />
       </Field>
       <div className="grid gap-3">
         <div className="flex items-center justify-between gap-2">
@@ -140,17 +145,20 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
                   placeholder="Company name"
                 />
               </Field>
+              <div className="sm:col-span-2">
               <Field label="Role">
-                <TextField
+                <AreaField
                   value={contact.role}
                   onChange={(event) => {
                     const contacts = draft.contacts.slice();
                     contacts[index] = { ...contact, role: event.target.value };
                     update({ contacts });
                   }}
+                  className="min-h-20"
                   placeholder="Superintendent"
                 />
               </Field>
+              </div>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <Field label="Phone">

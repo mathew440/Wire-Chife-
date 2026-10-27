@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getSettings, listAllEstimates, listAllReports, listAllSchedule, listAssignments, listPeople, listProjects, listTasks } from "@/lib/data/repo";
 import { SEEDED_COMPANY_NAME } from "@/lib/data/roles";
 import { projectPulse } from "@/lib/domain/dashboard";
+import { previewLine } from "@/lib/domain/prose";
 import { formatDay, todayISO } from "@/lib/domain/dates";
 import { weatherLabel } from "@/lib/domain/reports";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -81,7 +82,9 @@ export function JobsHome() {
                         {project.jobNumber ? `Job ${project.jobNumber}` : "No job number"} · {project.gc || "No GC"}
                       </p>
                       <p className="text-sm text-muted-foreground">{project.location}</p>
-                      <p className="mt-2 text-sm">{project.description}</p>
+                      {project.description ? (
+                        <p className="mt-2 line-clamp-3 text-[17px] leading-[1.6]">{previewLine(project.description)}</p>
+                      ) : null}
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <Stat label="Open items" value={String(pulse.openCount)} />
