@@ -1,6 +1,7 @@
 "use client";
 
-import { Field, PageIntro, TextField } from "@/components/bits";
+import { Field, PageIntro, SelectField, TextField } from "@/components/bits";
+import { ContactCard } from "@/components/contact-card";
 import { useDbReady } from "@/components/db-ready";
 import { EmptyState, PageFallback, StorageError } from "@/components/states";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ export function ContactsDirectory() {
   const { status, error } = useDbReady();
   const projects = useLiveQuery(() => (status === "ready" ? listProjects() : undefined), [status]);
   const [query, setQuery] = useState("");
+  const [jobId, setJobId] = useState("");
 
   if (status === "error") return <StorageError message={error ?? "Storage error"} />;
   if (status !== "ready" || !projects) return <PageFallback />;
@@ -20,27 +22,42 @@ export function ContactsDirectory() {
   const needle = query.trim().toLowerCase();
   const rows = projects.flatMap((project) =>
     project.contacts
-      .filter((contact) => contact.name.trim() || contact.email.trim() || contact.company.trim() || contact.phone.trim())
+      .filter((contact) => contact.name.trim() || contact.email.trim() || contact.company.trim() || contact.phone.trim() || contact.role.trim())
       .map((contact) => ({ contact, project })),
   );
   const shown = rows.filter(({ contact, project }) => {
+    if (jobId && project.id !== jobId) return false;
     if (!needle) return true;
     const haystack = [contact.name, contact.company, contact.email, contact.role, contact.phone, project.name, project.jobNumber]
       .join(" ")
       .toLowerCase();
     return haystack.includes(needle);
   });
+  const jobs = projects.filter((project) => project.contacts.some((contact) => contact.name.trim() || contact.company.trim() || contact.role.trim()));
 
   return (
     <div className="grid gap-5">
       <PageIntro
         eyebrow="All jobs"
         title="Contacts"
-        description="People saved on each job. Company and email show here and on the job edit screen. Nothing is looked up off this device."
+        description="People saved on each job. Company, role, and address each get their own line. Nothing is looked up off this device."
       />
-      <Field label="Find">
-        <TextField value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name, company, email, or job" />
-      </Field>
+      <div className="grid gap-4">
+        <Field label="Find">
+          <TextField value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name, company, email, or job" />
+        </Field>
+        <Field label="Job">
+          <SelectField value={jobId} onChange={(event) => setJobId(event.target.value)} aria-label="Filter by job">
+            <option value="">All jobs</option>
+            {jobs.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+                {project.jobNumber ? ` · ${project.jobNumber}` : ""}
+              </option>
+            ))}
+          </SelectField>
+        </Field>
+      </div>
       {rows.length === 0 ? (
         <EmptyState
           title="No contacts yet"
@@ -50,29 +67,13 @@ export function ContactsDirectory() {
       ) : shown.length === 0 ? (
         <EmptyState title="No match" body="Try a different name, company, or job." />
       ) : (
-        <ul className="grid gap-3">
+        <ul className="grid gap-4">
           {shown.map(({ contact, project }) => (
-            <li key={`${project.id}-${contact.id}`} className="grid gap-1 rounded-xl bg-card px-4 py-4 ring-1 ring-border">
-              <p className="font-display text-2xl font-bold">{contact.name || "Unnamed"}</p>
-              <p className="text-sm text-muted-foreground">
-                {[contact.company, contact.role].filter(Boolean).join(" · ") || "No company or role"}
-              </p>
-              {contact.email ? (
-                <a className="text-base font-semibold text-teal" href={`mailto:${contact.email}`}>
-                  {contact.email}
-                </a>
-              ) : (
-                <p className="text-sm text-muted-foreground">No email</p>
-              )}
-              {contact.phone ? (
-                <a className="text-base font-semibold text-teal" href={`tel:${contact.phone}`}>
-                  {contact.phone}
-                </a>
-              ) : null}
-              <Link href={`/projects/${project.id}/edit`} className="text-sm font-semibold">
-                {project.name}
-                {project.jobNumber ? ` · Job ${project.jobNumber}` : ""}
-              </Link>
+            <li key={`${project.id}-${contact.id}`}>
+              <ContactCard
+                contact={contact}
+                job={{ id: project.id, name: project.name, jobNumber: project.jobNumber }}
+              />
             </li>
           ))}
         </ul>

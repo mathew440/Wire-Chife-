@@ -1,6 +1,7 @@
 "use client";
 
 import { AreaField, ConfirmDialog, DateFlag, Field, PageIntro, SampleBadge, SelectField, TaskStatusPill, TextField, ConfirmationToggle } from "@/components/bits";
+import { StructuredText } from "@/components/structured-text";
 import { ProjectTabs } from "@/components/chrome";
 import { useDbReady } from "@/components/db-ready";
 import { EmptyState, InlineError, PageFallback, StorageError } from "@/components/states";
@@ -78,7 +79,14 @@ export function TaskList({ params }: { params: Promise<{ id: string }> }) {
                   {task.dueDate ? ` · ${formatDay(task.dueDate, today)} · ${duePhrase(task.dueDate, today)}` : " · No due date"}
                 </span>
                 {task.dueDate ? <DateFlag value={task.dueConfirmation} /> : null}
-                <span className="text-sm">{task.evidence ? `Source: ${task.evidence}` : "No source yet"}</span>
+                {task.evidence ? (
+                  <div className="text-[17px] leading-[1.6]">
+                    <p>Source</p>
+                    <StructuredText text={task.evidence} />
+                  </div>
+                ) : (
+                  <p className="text-[17px] leading-[1.6]">No source yet</p>
+                )}
               </Link>
             </li>
           ))}

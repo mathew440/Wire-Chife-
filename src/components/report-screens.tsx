@@ -23,6 +23,7 @@ import {
   saveReport,
 } from "@/lib/data/repo";
 import { formatDay, todayISO } from "@/lib/domain/dates";
+import { previewLine } from "@/lib/domain/prose";
 import { REPORT_NOTES, REPORT_SECTIONS, appendToReportSection, weatherLabel } from "@/lib/domain/reports";
 import { prepareUpload } from "@/lib/files/prepare";
 import { buildDailyReportPdf, reportPdfFileName } from "@/lib/pdf/daily-report-pdf";
@@ -71,7 +72,9 @@ export function ReportList({ params }: { params: Promise<{ id: string }> }) {
                       {weather.entered ? "Weather entered" : "Weather unverified"}
                     </span>
                   </span>
-                  <span className="text-sm text-muted-foreground">{report.manpower.length} on the report · {report.completed || "No completed work written down."}</span>
+                  <span className="text-[17px] leading-[1.6] text-muted-foreground">
+                    {report.manpower.length} on the report · {report.completed ? previewLine(report.completed) : "No completed work written down."}
+                  </span>
                 </Link>
               </li>
             );
