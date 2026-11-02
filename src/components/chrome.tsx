@@ -9,9 +9,9 @@ import { Toaster } from "@/components/ui/sonner";
 import { getProject, getSettings } from "@/lib/data/repo";
 import { SEEDED_COMPANY_NAME, SEEDED_PROFILE_NAME, SEEDED_PROFILE_ROLE } from "@/lib/data/roles";
 import { useLiveQuery } from "dexie-react-hooks";
-import { CalendarRange, Camera, ClipboardList, Clock, Contact, Database, FolderOpen, HardHat, LayoutDashboard, Package, ScrollText, Truck, Users } from "lucide-react";
+import { CalendarRange, Camera, ChevronLeft, ChevronRight, ClipboardList, Clock, Contact, Database, FolderOpen, HardHat, LayoutDashboard, Package, ScrollText, Truck, Users } from "lucide-react";
 import { AppLink as Link, useAppPathname } from "@/components/app-link";
-import { Suspense, type ReactNode } from "react";
+import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "cn";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -20,10 +20,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Suspense fallback={<div className="fixed inset-y-0 left-0 hidden w-64 border-r border-sidebar-border bg-sidebar md:block" />}>
         <Sidebar />
       </Suspense>
-      <div className="md:pl-64">
+      <div className="min-w-0 md:pl-64">
         <MobileBar />
         <SyncProvider>
-          <main className="px-4 pt-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:px-8 md:pt-6 md:pb-10">{children}</main>
+          <main className="min-w-0 px-4 pt-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:px-8 md:pt-6 md:pb-10">{children}</main>
         </SyncProvider>
       </div>
       <Suspense fallback={null}>
@@ -217,22 +217,82 @@ export function ProjectTabs({
     ["estimates", "Estimates", `/projects/${projectId}/estimates`],
     ["files", "Files", `/projects/${projectId}/files`],
   ] as const;
+  const scrollerRef = useRef<HTMLElement | null>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const update = () => {
+      const left = el.scrollLeft > 8;
+      const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 8;
+      setEdges((currentEdges) => (currentEdges.left === left && currentEdges.right === right ? currentEdges : { left, right }));
+    };
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    window.addEventListener("resize", update);
+    return () => {
+      el.removeEventListener("scroll", update);
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [projectId]);
+
+  function nudge(direction: -1 | 1) {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * Math.max(140, Math.round(el.clientWidth * 0.8)), behavior: "smooth" });
+  }
+
   return (
-    <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Job sections">
-      {tabs.map(([key, label, href]) => (
-        <Link
-          key={key}
-          href={href}
-          className={cn(
-            "inline-flex h-12 shrink-0 items-center rounded-lg px-4 text-sm font-bold",
-            current === key ? "bg-teal text-teal-ink" : "bg-card text-foreground ring-1 ring-border",
-          )}
-          aria-current={current === key ? "page" : undefined}
+    <div className="flex min-w-0 items-center gap-1">
+      {edges.left ? (
+        <button
+          type="button"
+          className="inline-flex size-12 shrink-0 items-center justify-center rounded-lg bg-card text-foreground ring-1 ring-border"
+          aria-label="Previous job sections"
+          onClick={() => nudge(-1)}
         >
-          {label}
-        </Link>
-      ))}
-    </nav>
+          <ChevronLeft className="size-5" aria-hidden />
+        </button>
+      ) : null}
+      <div className="relative min-w-0 flex-1">
+        <nav
+          ref={scrollerRef}
+          className="job-tabs flex w-full min-w-0 flex-wrap gap-2 pb-1 md:flex-nowrap md:overflow-x-auto md:overscroll-x-contain md:scroll-smooth md:pb-2"
+          aria-label="Job sections"
+        >
+          {tabs.map(([key, label, href]) => (
+            <Link
+              key={key}
+              href={href}
+              className={cn(
+                "inline-flex h-12 shrink-0 items-center rounded-lg px-4 text-sm font-bold",
+                current === key ? "bg-teal text-teal-ink" : "bg-card text-foreground ring-1 ring-border",
+              )}
+              aria-current={current === key ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+        {edges.right ? (
+          <span aria-hidden className="pointer-events-none absolute top-0 right-0 bottom-2 w-6 bg-gradient-to-l from-background to-transparent" />
+        ) : null}
+      </div>
+      {edges.right ? (
+        <button
+          type="button"
+          className="inline-flex size-12 shrink-0 items-center justify-center rounded-lg bg-card text-foreground ring-1 ring-border"
+          aria-label="More job sections"
+          onClick={() => nudge(1)}
+        >
+          <ChevronRight className="size-5" aria-hidden />
+        </button>
+      ) : null}
+    </div>
   );
 }
 

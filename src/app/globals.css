@@ -148,3 +148,21 @@
 .font-display {
   font-family: var(--font-display), sans-serif;
 }
+
+.job-tabs {
+  scrollbar-width: thin;
+  scrollbar-color: #3ee0c5 transparent;
+}
+
+.job-tabs::-webkit-scrollbar {
+  height: 8px;
+}
+
+.job-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.job-tabs::-webkit-scrollbar-thumb {
+  background: #3ee0c5;
+  border-radius: 999px;
+}

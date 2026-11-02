@@ -171,13 +171,19 @@ export function PageIntro({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-      <div className="min-w-0">
-        {eyebrow ? <p className="font-display text-sm font-bold tracking-[0.16em] text-teal uppercase">{eyebrow}</p> : null}
-        <h1 className="font-display text-4xl leading-none font-bold sm:text-5xl">{title}</h1>
-        {description ? <p className="mt-2 max-w-3xl text-base text-muted-foreground">{description}</p> : null}
+    <div className="flex w-full min-w-0 flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div className="min-w-0 max-w-full">
+        {eyebrow ? (
+          <p className="font-display text-sm font-bold tracking-[0.16em] break-words text-teal uppercase [overflow-wrap:anywhere]">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h1 className="font-display max-w-full text-4xl leading-tight font-bold break-words [overflow-wrap:anywhere] sm:text-5xl sm:leading-none">
+          {title}
+        </h1>
+        {description ? <p className="mt-2 max-w-3xl text-base break-words text-muted-foreground">{description}</p> : null}
       </div>
-      {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+      {actions ? <div className="flex w-full min-w-0 flex-wrap gap-2 lg:w-auto lg:justify-end">{actions}</div> : null}
     </div>
   );
 }

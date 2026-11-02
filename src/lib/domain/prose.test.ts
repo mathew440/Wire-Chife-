@@ -1,4 +1,4 @@
-import { displayTitle, parseProse, summarySplit } from "@/lib/domain/prose";
+import { displayTitle, foldProse, parseProse, richTokens, summarySplit } from "@/lib/domain/prose";
 import { describe, expect, it } from "vitest";
 
 const DENSE =
@@ -44,5 +44,47 @@ describe("structured job text", () => {
     expect(sections[0]?.summary).toBe(true);
     expect(sections[0]?.parts[0]?.items).toEqual(["Rough-in started.", "Gear is late [needs verification]."]);
     expect(summarySplit(sections).hidden.map((section) => section.title)).toEqual(["NOTES"]);
+  });
+
+  it("keeps a wrapped sentence together and leaves the line break in place", () => {
+    const sections = parseProse("The sample loop needs new\npedestals along the road.");
+    expect(sections).toHaveLength(1);
+    expect(sections[0]?.parts).toEqual([
+      { type: "paragraph", text: "The sample loop needs new\npedestals along the road." },
+    ]);
+  });
+
+  it("turns marked lines into a list and leaves a bare url in the paragraph", () => {
+    const sections = parseProse("- Sample pedestal\n- Sample light\n\nhttps://drive.google.com/drive/folders/sample-not-a-real-folder.");
+    expect(sections[0]?.parts[0]).toEqual({ type: "list", items: ["Sample pedestal", "Sample light"] });
+    expect(sections[0]?.parts[1]).toEqual({
+      type: "paragraph",
+      text: "https://drive.google.com/drive/folders/sample-not-a-real-folder.",
+    });
+  });
+
+  it("makes an http link tappable and keeps the trailing punctuation out of the href", () => {
+    expect(richTokens("Drawings: https://drive.google.com/drive/folders/sample-folder. [needs verification]")).toEqual([
+      { kind: "text", value: "Drawings: " },
+      {
+        kind: "link",
+        value: "https://drive.google.com/drive/folders/sample-folder",
+        href: "https://drive.google.com/drive/folders/sample-folder",
+      },
+      { kind: "text", value: "." },
+      { kind: "text", value: " " },
+      { kind: "verify", value: "[needs verification]" },
+    ]);
+  });
+
+  it("folds a long unlabeled description and still shows status plus scope when those labels exist", () => {
+    const lines = Array.from({ length: 8 }, (_, index) => `Sample note ${index} stays on this made-up job and should stay readable.`);
+    const folded = foldProse(parseProse(lines.join("\n")));
+    expect(folded.shown[0]?.parts[0]?.items).toHaveLength(3);
+    expect(folded.hidden[0]?.parts[0]?.items).toHaveLength(5);
+
+    const labeled = foldProse(parseProse(DENSE));
+    expect(labeled.shown.map((section) => section.title)).toEqual(["STATUS (2026-10-01)", "SCOPE ON RECORD"]);
+    expect(labeled.hidden.map((section) => section.title)).toEqual(["KEY FACTS", "DEMARCATION", "NOTES"]);
   });
 });

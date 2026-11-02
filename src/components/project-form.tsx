@@ -67,7 +67,7 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto grid max-w-3xl gap-5">
+    <form onSubmit={onSubmit} className="mx-auto grid w-full min-w-0 max-w-3xl grid-cols-[minmax(0,1fr)] gap-5 [overflow-wrap:anywhere] [&>*]:min-w-0">
       <PageIntro
         eyebrow={projectId ? "Edit job" : "New job"}
         title={projectId ? draft.name || "Edit job" : "New job"}
@@ -105,13 +105,13 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
         <AreaField
           value={draft.description}
           onChange={(event) => update({ description: event.target.value })}
-          className="min-h-40"
+          className="min-h-40 max-w-full [overflow-wrap:anywhere]"
           placeholder={"STATUS:\nWhat is happening on this sample job.\n\nSCOPE ON RECORD:\nWhat the job covers."}
         />
       </Field>
       <div className="grid gap-3">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="font-display text-2xl font-bold">Contacts</h2>
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+          <h2 className="font-display min-w-0 text-2xl font-bold">Contacts</h2>
           <Button
             type="button"
             variant="outline"
@@ -195,13 +195,13 @@ export function ProjectForm({ projectId }: { projectId?: string }) {
         ))}
       </div>
       <InlineError message={formError} />
-      <div className="flex flex-wrap gap-2">
-        <Button type="submit">Save job</Button>
-        <Button type="button" variant="outline" nativeButton={false} render={<Link href={projectId ? `/projects/${projectId}` : "/"} />}>
+      <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+        <Button type="submit" className="w-full sm:w-auto">Save job</Button>
+        <Button type="button" variant="outline" className="w-full sm:w-auto" nativeButton={false} render={<Link href={projectId ? `/projects/${projectId}` : "/"} />}>
           Cancel
         </Button>
         {projectId ? (
-          <Button type="button" variant="destructive" onClick={() => setConfirmDelete(true)}>
+          <Button type="button" variant="destructive" className="w-full sm:w-auto" onClick={() => setConfirmDelete(true)}>
             Delete job
           </Button>
         ) : null}
