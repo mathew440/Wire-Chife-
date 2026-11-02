@@ -1,5 +1,5 @@
 import { appPathname, withBasePath } from "@/lib/base-path";
-import { matchRoute } from "@/lib/routes";
+import { contactsJobPath, matchRoute } from "@/lib/routes";
 import { describe, expect, it } from "vitest";
 
 describe("Pages base path", () => {
@@ -19,6 +19,14 @@ describe("Pages base path", () => {
     });
     expect(matchRoute("/projects/new")).toEqual({ name: "project-new" });
     expect(matchRoute("/Wire-Chife-/contacts/")).toEqual({ name: "contacts" });
+    expect(matchRoute("/contacts/job/sample-job-a")).toEqual({ name: "contacts-job", id: "sample-job-a" });
+    expect(matchRoute("/Wire-Chife-/contacts/job/job%20a/")).toEqual({ name: "contacts-job", id: "job a" });
+    expect(matchRoute("/contacts/general")).toEqual({ name: "contacts-job", id: "general" });
+    expect(contactsJobPath()).toBe("/contacts");
+    expect(contactsJobPath("sample-job-a")).toBe("/contacts/job/sample-job-a");
+    expect(contactsJobPath("general")).toBe("/contacts/general");
+    expect(matchRoute("/contacts/job")).toEqual({ name: "missing" });
+    expect(matchRoute("/contacts/other")).toEqual({ name: "missing" });
     expect(matchRoute("/sign-in")).toEqual({ name: "sign-in" });
     expect(matchRoute("/projects/sample-job-a/submittals/new")).toEqual({
       name: "submittal",
