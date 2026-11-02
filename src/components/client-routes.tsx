@@ -5,7 +5,7 @@ import { CrewBoard } from "@/components/crew-board";
 import { DataScreen } from "@/components/data-screen";
 import { EstimateEditor, EstimateList } from "@/components/estimate-screens";
 import { FileList, FileViewer } from "@/components/file-screens";
-import { ContactsDirectory } from "@/components/contacts-directory";
+import { ContactsDirectory, JobContacts } from "@/components/contacts-directory";
 import { JobsHome } from "@/components/jobs-home";
 import { HoursScreen } from "@/components/hours-screen";
 import { LookaheadScreen } from "@/components/lookahead-screen";
@@ -51,6 +51,8 @@ function RouteView({ route }: { route: AppRoute }) {
       return <DataScreen />;
     case "contacts":
       return <ContactsDirectory />;
+    case "contacts-job":
+      return <JobContacts projectId={route.id} />;
     case "sign-in":
       return <SignInScreen />;
     case "project-new":

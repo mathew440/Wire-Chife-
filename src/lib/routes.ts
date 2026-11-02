@@ -1,4 +1,5 @@
 import { appPathname } from "@/lib/base-path";
+import { GENERAL_CONTACT_GROUP_ID } from "@/lib/domain/contact-groups";
 
 export type AppRoute =
   | { name: "home" }
@@ -24,6 +25,7 @@ export type AppRoute =
   | { name: "orders"; id: string }
   | { name: "hours"; id: string }
   | { name: "contacts" }
+  | { name: "contacts-job"; id: string }
   | { name: "sign-in" }
   | { name: "missing" };
 
@@ -41,7 +43,14 @@ export function matchRoute(pathname: string): AppRoute {
   if (parts.length === 0) return { name: "home" };
   if (parts.length === 1 && parts[0] === "crew") return { name: "crew" };
   if (parts.length === 1 && parts[0] === "data") return { name: "data" };
-  if (parts.length === 1 && parts[0] === "contacts") return { name: "contacts" };
+  if (parts[0] === "contacts" && parts.length === 1) return { name: "contacts" };
+  if (parts[0] === "contacts" && parts.length === 2 && parts[1] === GENERAL_CONTACT_GROUP_ID) {
+    return { name: "contacts-job", id: GENERAL_CONTACT_GROUP_ID };
+  }
+  if (parts[0] === "contacts" && parts.length === 3 && parts[1] === "job" && parts[2]) {
+    return { name: "contacts-job", id: parts[2] };
+  }
+  if (parts[0] === "contacts") return { name: "missing" };
   if (parts.length === 1 && parts[0] === "sign-in") return { name: "sign-in" };
   if (parts[0] !== "projects") return { name: "missing" };
   if (parts.length === 2 && parts[1] === "new") return { name: "project-new" };
@@ -67,4 +76,11 @@ export function matchRoute(pathname: string): AppRoute {
   if (section === "orders" && parts.length === 3) return { name: "orders", id };
   if (section === "hours" && parts.length === 3) return { name: "hours", id };
   return { name: "missing" };
+}
+
+/** Contacts list, one job's contacts, or the group for people who are not on a job. */
+export function contactsJobPath(id?: string): string {
+  if (!id) return "/contacts";
+  if (id === GENERAL_CONTACT_GROUP_ID) return "/contacts/general";
+  return `/contacts/job/${encodeURIComponent(id)}`;
 }

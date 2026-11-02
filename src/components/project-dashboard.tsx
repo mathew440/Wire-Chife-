@@ -26,6 +26,7 @@ import {
 } from "@/lib/data/repo";
 import { getProject } from "@/lib/data/repo";
 import { preparedByLabel } from "@/lib/data/roles";
+import { contactsJobPath } from "@/lib/routes";
 import { isOverdueTask, projectPulse } from "@/lib/domain/dashboard";
 import { addDays, duePhrase, formatDay, todayISO } from "@/lib/domain/dates";
 import { summarizeHours } from "@/lib/domain/hours";
@@ -322,9 +323,14 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
                   <ContactCard key={contact.id} contact={contact} compact />
                 ))}
               </div>
-              <Button variant="outline" nativeButton={false} render={<Link href="/contacts" />}>
-                All contacts
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" nativeButton={false} render={<Link href={contactsJobPath(id)} />}>
+                  Job contacts
+                </Button>
+                <Button variant="outline" nativeButton={false} render={<Link href="/contacts" />}>
+                  All contacts
+                </Button>
+              </div>
               <p className="text-sm text-muted-foreground">{files.length} file{files.length === 1 ? "" : "s"} on this job.</p>
               <Button variant="outline" nativeButton={false} render={<Link href={`/projects/${id}/files`} />}>
                 Files
