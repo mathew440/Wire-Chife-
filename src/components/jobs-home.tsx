@@ -35,7 +35,7 @@ export function JobsHome() {
   const hasSample = projects.some((project) => project.isSample);
 
   return (
-    <div className="grid gap-6">
+    <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-6 [&>*]:min-w-0">
       <PageIntro
         eyebrow={settings.companyName || SEEDED_COMPANY_NAME}
         title="Jobs"
@@ -77,11 +77,11 @@ export function JobsHome() {
                       <ProjectStatusPill status={project.status} />
                     </div>
                     <div>
-                      <h2 className="font-display text-3xl leading-none font-bold">{project.name}</h2>
-                      <p className="mt-2 text-sm text-muted-foreground">
+                      <h2 className="font-display text-3xl leading-tight font-bold break-words [overflow-wrap:anywhere]">{project.name}</h2>
+                      <p className="mt-2 text-sm break-words text-muted-foreground [overflow-wrap:anywhere]">
                         {project.jobNumber ? `Job ${project.jobNumber}` : "No job number"} · {project.gc || "No GC"}
                       </p>
-                      <p className="text-sm text-muted-foreground">{project.location}</p>
+                      <p className="text-sm break-words text-muted-foreground [overflow-wrap:anywhere]">{project.location}</p>
                       {project.description ? (
                         <p className="mt-2 line-clamp-3 text-[17px] leading-[1.6]">{previewLine(project.description)}</p>
                       ) : null}

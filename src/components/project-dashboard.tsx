@@ -145,18 +145,18 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
   }
 
   return (
-    <div className="grid gap-5">
+    <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-5 [overflow-wrap:anywhere] [&>*]:min-w-0">
       <ProjectTabs projectId={id} current="dashboard" />
       <PageIntro
         eyebrow={project.jobNumber ? `Job ${project.jobNumber}` : "Job"}
         title={project.name}
         actions={
           <>
-            <Button nativeButton={false} render={<Link href={`/projects/${id}/reports/new`} />}>New report</Button>
-            <Button type="button" variant="outline" onClick={() => void exportWeek()}>
+            <Button className="w-full sm:w-auto" nativeButton={false} render={<Link href={`/projects/${id}/reports/new`} />}>New report</Button>
+            <Button className="w-full sm:w-auto" type="button" variant="outline" onClick={() => void exportWeek()}>
               Weekly PDF
             </Button>
-            <Button variant="outline" nativeButton={false} render={<Link href={`/projects/${id}/edit`} />}>
+            <Button className="w-full sm:w-auto" variant="outline" nativeButton={false} render={<Link href={`/projects/${id}/edit`} />}>
               Edit job
             </Button>
           </>
@@ -167,14 +167,14 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
         <ProjectStatusPill status={project.status} />
       </div>
       <LastEdited by={project.updatedBy} />
-      <section className="grid gap-2 rounded-xl border-2 border-border bg-card px-4 py-4 text-[17px] leading-[1.6]">
-        <p>
+      <section className="grid min-w-0 gap-2 rounded-xl border-2 border-border bg-card px-3 py-3 text-[17px] leading-snug sm:grid-cols-3 sm:px-4 sm:py-4">
+        <p className="min-w-0 [overflow-wrap:anywhere]">
           <span className="font-bold">Job number</span> {project.jobNumber || "None"}
         </p>
-        <p>
+        <p className="min-w-0 [overflow-wrap:anywhere]">
           <span className="font-bold">GC</span> {project.gc || "Not entered"}
         </p>
-        <p>
+        <p className="min-w-0 [overflow-wrap:anywhere]">
           <span className="font-bold">Location</span> {project.location || "Not entered"}
         </p>
       </section>
@@ -256,7 +256,7 @@ export function ProjectDashboard({ params }: { params: Promise<{ id: string }> }
       <div className="grid gap-4 xl:grid-cols-5">
         <Card className="bg-card text-base xl:col-span-3">
           <CardContent className="grid gap-3">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-2xl font-bold">Open items</h2>
               <Button variant="outline" nativeButton={false} render={<Link href={`/projects/${id}/tasks/new`} />}>
                 New item

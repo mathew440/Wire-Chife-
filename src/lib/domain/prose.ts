@@ -31,6 +31,43 @@ export function summarySplit(sections: ProseSection[]): { shown: ProseSection[];
   return { shown, hidden };
 }
 
+/** Fold a long unlabeled description. Labeled Status and Scope stay put. */
+export function foldProse(sections: ProseSection[]): { shown: ProseSection[]; hidden: ProseSection[] } {
+  const labeled = summarySplit(sections);
+  if (labeled.hidden.length > 0) return labeled;
+  if (proseWeight(sections) <= 420) return { shown: sections, hidden: [] };
+  return clipLong(sections);
+}
+
+export interface RichToken {
+  kind: "text" | "link" | "verify";
+  value: string;
+  href?: string;
+}
+
+/** Split visible text into words, tappable http(s) links, and verification marks. */
+export function richTokens(text: string): RichToken[] {
+  const token = /https?:\/\/[^\s<>"']+|\[\s*needs verification\s*\]/gi;
+  const tokens: RichToken[] = [];
+  let last = 0;
+  for (const match of text.matchAll(token)) {
+    const index = match.index ?? 0;
+    if (index > last) tokens.push({ kind: "text", value: text.slice(last, index) });
+    const raw = match[0];
+    if (raw.startsWith("[")) {
+      tokens.push({ kind: "verify", value: raw });
+    } else {
+      const trimmed = raw.replace(/[),.;:!?]+$/, "");
+      tokens.push({ kind: "link", value: trimmed, href: trimmed });
+      const trailing = raw.slice(trimmed.length);
+      if (trailing) tokens.push({ kind: "text", value: trailing });
+    }
+    last = index + raw.length;
+  }
+  if (last < text.length) tokens.push({ kind: "text", value: text.slice(last) });
+  return tokens;
+}
+
 export function previewLine(text: string): string {
   const { shown } = summarySplit(parseProse(text));
   const part = shown.flatMap((section) => section.parts)[0];
@@ -105,15 +142,68 @@ function partsFromBody(body: string): ProsePart[] {
   const blocks = body.split(/\n\s*\n/).map((block) => block.trim()).filter(Boolean);
   return blocks.map((block) => {
     const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
-    if (lines.length >= 2 && lines.every((line) => line.length <= 160)) {
-      return { type: "list", items: lines };
+    // A return in the middle of a sentence stays in the paragraph. Only lines that
+    // already read as separate items become bullets.
+    if (lines.length >= 2 && lines.every((line) => line.length <= 160 && isItemLine(line))) {
+      return { type: "list", items: lines.map(itemText) };
     }
-    const sentences = splitSentences(lines.join(" "));
-    if (sentences.length >= 2 && sentences.every((sentence) => sentence.length <= 160)) {
-      return { type: "list", items: sentences };
+    if (lines.length === 1) {
+      const sentences = splitSentences(lines[0]);
+      if (sentences.length >= 2 && sentences.every((sentence) => sentence.length <= 160)) {
+        return { type: "list", items: sentences };
+      }
     }
-    return { type: "paragraph", text: lines.join(" ") };
+    return { type: "paragraph", text: lines.join("\n") };
   });
+}
+
+function isItemLine(line: string): boolean {
+  if (/^[-*•]\s+\S/.test(line)) return true;
+  return /[.!?…][)"'\]]*(?:\s*\[\s*needs verification\s*\])?\s*$/i.test(line);
+}
+
+function itemText(line: string): string {
+  return line.replace(/^[-*•]\s+/, "");
+}
+
+function proseWeight(sections: ProseSection[]): number {
+  return sections.reduce((sum, section) => sum + sectionText(section).length, 0);
+}
+
+function sectionText(section: ProseSection): string {
+  const parts = section.parts.map((part) => (part.type === "list" ? (part.items ?? []).join("\n") : (part.text ?? "")));
+  return [section.title ?? "", ...parts].join("\n");
+}
+
+function clipLong(sections: ProseSection[]): { shown: ProseSection[]; hidden: ProseSection[] } {
+  const first = sections[0];
+  if (!first) return { shown: sections, hidden: [] };
+  const part = first.parts[0];
+  if (part?.type === "list" && (part.items?.length ?? 0) > 3) {
+    const items = part.items ?? [];
+    const rest = [{ title: null, summary: false, parts: [{ type: "list" as const, items: items.slice(3) }, ...first.parts.slice(1)] }, ...sections.slice(1)];
+    return {
+      shown: [{ ...first, parts: [{ type: "list", items: items.slice(0, 3) }] }],
+      hidden: rest.filter((section) => section.parts.some((item) => (item.items?.length ?? 0) > 0 || item.text)),
+    };
+  }
+  if (first.parts.length > 1) {
+    return {
+      shown: [{ ...first, parts: [first.parts[0]] }],
+      hidden: [{ title: null, summary: false, parts: first.parts.slice(1) }, ...sections.slice(1)].filter((section) => section.parts.length > 0),
+    };
+  }
+  if (sections.length > 1) return { shown: [first], hidden: sections.slice(1) };
+  if (part?.type === "paragraph" && (part.text?.length ?? 0) > 280) {
+    const text = part.text ?? "";
+    const space = text.lastIndexOf(" ", 280);
+    const clipped = `${text.slice(0, space > 80 ? space : 280).trimEnd()}…`;
+    return {
+      shown: [{ ...first, parts: [{ type: "paragraph", text: clipped }] }],
+      hidden: [first],
+    };
+  }
+  return { shown: sections, hidden: [] };
 }
 
 function splitSentences(text: string): string[] {
